@@ -1,0 +1,147 @@
+# network_alarm.ttl
+# Mini ontology for network alarm correlation
+# Inspired by NORIA-O (Tailhardat et al., ESWC 2023)
+# Simplified for prototype purposes
+
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix net:  <http://example.org/network#> .
+
+# --- Classes ---
+
+net:NetworkDevice a owl:Class ;
+    rdfs:label "Network Device" ;
+    rdfs:comment "A physical or virtual network component." .
+
+net:Alarm a owl:Class ;
+    rdfs:label "Alarm" ;
+    rdfs:comment "An alert triggered by anomalous behaviour on a device." .
+
+net:Incident a owl:Class ;
+    rdfs:label "Incident" ;
+    rdfs:comment "A diagnosed network incident composed of correlated alarms." .
+
+net:AttackPattern a owl:Class ;
+    rdfs:label "Attack Pattern" ;
+    rdfs:comment "A known attack pattern (MITRE ATT&CK compatible)." .
+
+# --- Properties ---
+
+net:affectsDevice a owl:ObjectProperty ;
+    rdfs:domain net:Alarm ;
+    rdfs:range  net:NetworkDevice ;
+    rdfs:label  "affects device" .
+
+net:triggeredAt a owl:DatatypeProperty ;
+    rdfs:domain net:Alarm ;
+    rdfs:range  xsd:dateTime ;
+    rdfs:label  "triggered at" .
+
+net:hasSeverity a owl:DatatypeProperty ;
+    rdfs:domain net:Alarm ;
+    rdfs:range  xsd:string ;
+    rdfs:label  "has severity" .
+
+net:alarmType a owl:DatatypeProperty ;
+    rdfs:domain net:Alarm ;
+    rdfs:range  xsd:string ;
+    rdfs:label  "alarm type" .
+
+net:composedOf a owl:ObjectProperty ;
+    rdfs:domain net:Incident ;
+    rdfs:range  net:Alarm ;
+    rdfs:label  "composed of" .
+
+net:classifiedAs a owl:ObjectProperty ;
+    rdfs:domain net:Incident ;
+    rdfs:range  net:AttackPattern ;
+    rdfs:label  "classified as" .
+
+net:causallyLinkedTo a owl:ObjectProperty ;
+    rdfs:domain net:Alarm ;
+    rdfs:range  net:Alarm ;
+    rdfs:label  "causally linked to" ;
+    rdfs:comment "A causes B: removing A would prevent B." .
+
+net:correlatedWith a owl:ObjectProperty ;
+    rdfs:domain net:Alarm ;
+    rdfs:range  net:Alarm ;
+    rdfs:label  "correlated with" ;
+    rdfs:comment "A and B share a common cause but neither causes the other." .
+
+# --- Devices ---
+
+net:Router_Core a net:NetworkDevice ;
+    rdfs:label "Core Router R1" ;
+    net:deviceType "router" .
+
+net:Firewall_Edge a net:NetworkDevice ;
+    rdfs:label "Edge Firewall FW1" ;
+    net:deviceType "firewall" .
+
+net:Server_Web a net:NetworkDevice ;
+    rdfs:label "Web Server WS1" ;
+    net:deviceType "server" .
+
+# --- Alarms (DDoS incident scenario) ---
+
+net:Alarm_CPU a net:Alarm ;
+    rdfs:label     "CPU spike on R1" ;
+    net:alarmType  "CPU_OVERLOAD" ;
+    net:hasSeverity "HIGH" ;
+    net:triggeredAt "2026-06-02T14:00:00"^^xsd:dateTime ;
+    net:affectsDevice net:Router_Core .
+
+net:Alarm_Latency a net:Alarm ;
+    rdfs:label     "Latency spike on R1" ;
+    net:alarmType  "HIGH_LATENCY" ;
+    net:hasSeverity "HIGH" ;
+    net:triggeredAt "2026-06-02T14:01:30"^^xsd:dateTime ;
+    net:affectsDevice net:Router_Core .
+
+net:Alarm_PacketDrop a net:Alarm ;
+    rdfs:label     "Packet drop on R1" ;
+    net:alarmType  "PACKET_LOSS" ;
+    net:hasSeverity "CRITICAL" ;
+    net:triggeredAt "2026-06-02T14:02:00"^^xsd:dateTime ;
+    net:affectsDevice net:Router_Core .
+
+net:Alarm_FirewallSpike a net:Alarm ;
+    rdfs:label     "Inbound traffic spike on FW1" ;
+    net:alarmType  "TRAFFIC_SPIKE" ;
+    net:hasSeverity "HIGH" ;
+    net:triggeredAt "2026-06-02T13:59:45"^^xsd:dateTime ;
+    net:affectsDevice net:Firewall_Edge .
+
+net:Alarm_WebTimeout a net:Alarm ;
+    rdfs:label     "Request timeout on WS1" ;
+    net:alarmType  "SERVICE_TIMEOUT" ;
+    net:hasSeverity "MEDIUM" ;
+    net:triggeredAt "2026-06-02T14:03:00"^^xsd:dateTime ;
+    net:affectsDevice net:Server_Web .
+
+# --- Causal and correlation links ---
+
+net:Alarm_FirewallSpike net:causallyLinkedTo net:Alarm_CPU .
+net:Alarm_CPU           net:causallyLinkedTo net:Alarm_Latency .
+net:Alarm_CPU           net:causallyLinkedTo net:Alarm_PacketDrop .
+net:Alarm_PacketDrop    net:causallyLinkedTo net:Alarm_WebTimeout .
+net:Alarm_Latency       net:correlatedWith   net:Alarm_PacketDrop .
+
+# --- Incident ---
+
+net:Incident_DDoS a net:Incident ;
+    rdfs:label       "DDoS Incident 2026-06-02" ;
+    net:composedOf   net:Alarm_CPU ,
+                     net:Alarm_Latency ,
+                     net:Alarm_PacketDrop ,
+                     net:Alarm_FirewallSpike ,
+                     net:Alarm_WebTimeout ;
+    net:classifiedAs net:Pattern_DDoS .
+
+net:Pattern_DDoS a net:AttackPattern ;
+    rdfs:label "Volumetric DDoS" ;
+    net:mitreId "T1498" ;
+    rdfs:comment "MITRE ATT&CK T1498 — Network Denial of Service." .
