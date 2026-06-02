@@ -1,6 +1,6 @@
 # alarm-correlation-rdf
 
-> **Network alarm correlation using RDF knowledge graph and SPARQL**
+> **Network alarm correlation and causal reasoning using RDF knowledge graph and SPARQL**
 
 [![Python](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -8,26 +8,28 @@
 
 ---
 
-## Motivation
+## The Problem
 
-Network monitoring systems generate hundreds of alarms per minute. Most
-of these alarms are **not independent** — they share causal or
-correlational relationships rooted in a single underlying incident.
+Network monitoring systems generate hundreds of alarms per minute.
+Most are not independent — they share causal or correlational
+relationships rooted in a single underlying incident.
 
-The core diagnostic challenge — **Verrou 1** of the target CIFRE thesis
-(Orange Innovation / EURECOM, ref. 2026-51517) — is:
+The core diagnostic challenge is distinguishing between:
 
-> *"ML models detect statistical correlations. Incident diagnosis requires
-> causal reasoning. How do we lift a correlational agent toward structured
-> causal inference via a knowledge graph enriched with security ontologies?"*
+- **Correlated alarms**: they appear together statistically, but neither causes the other
+- **Causally linked alarms**: one directly causes the next
 
-This repository prototypes the semantic layer that enables this lift:
-an RDF knowledge graph of network alarms, queryable via SPARQL, modelling
-both causal chains and correlational relationships.
+This distinction is critical for remediation. Acting on a correlated
+symptom wastes time and resources. Acting on the root cause stops all
+downstream alarms simultaneously.
 
-The ontology is inspired by **NORIA-O** (Tailhardat et al., ESWC 2023),
-the reference ontology for anomaly detection in ICT systems developed
-at Orange Innovation.
+Most ML-based monitoring systems detect co-occurrence. This prototype
+shows what structured causal reasoning via a knowledge graph enables
+instead.
+
+The ontology is inspired by **NORIA-O** (Tailhardat, Chabot, Troncy —
+ESWC 2023), the reference ontology for anomaly detection in ICT systems
+developed at Orange Innovation / EURECOM.
 
 ---
 
@@ -35,93 +37,121 @@ at Orange Innovation.
 
 A DDoS attack triggers 5 alarms across 3 network devices:
 
-| Alarm | Device | Severity | Time |
-|---|---|---|---|
-| Inbound traffic spike | Firewall FW1 | HIGH | 13:59:45 |
-| CPU overload | Router R1 | HIGH | 14:00:00 |
-| High latency | Router R1 | HIGH | 14:01:30 |
-| Packet drop | Router R1 | CRITICAL | 14:02:00 |
-| Service timeout | Web Server WS1 | MEDIUM | 14:03:00 |
+| Alarm | Device | Severity |
+|---|---|---|
+| Inbound traffic spike | Firewall FW1 | HIGH |
+| CPU overload | Router R1 | HIGH |
+| Latency spike | Router R1 | HIGH |
+| Packet drop | Router R1 | CRITICAL |
+| Service timeout | Web Server WS1 | MEDIUM |
 
-**Causal chain:** FW traffic spike → CPU overload → latency + packet drop → timeout
-
-Without causal reasoning, these 5 alarms appear as 5 independent incidents
-requiring 5 separate investigations. The knowledge graph identifies
-**one root cause** and **one intervention point**.
+**Causal chain:** FW traffic spike → CPU overload → {latency, packet drop} → timeout
 
 ---
 
-## SPARQL Queries
+## What the system can do
 
-Five diagnostic queries demonstrate the reasoning capabilities of the graph:
+### 1. SPARQL diagnostic queries (`src/alarm_correlation.py`)
 
-| Query | Question |
-|---|---|
-| Q1 | List all alarms with severity and affected device |
-| Q2 | What is the causal chain? Which alarm is the root cause? |
-| Q3 | Which alarms are correlated (same cause, not causal)? |
-| Q4 | Which device concentrates the most alarms? |
-| Q5 | How does this incident map to MITRE ATT&CK? |
-
----
-
-## Results
+Five queries covering the full diagnostic pipeline:
 
 ```
-Q2 — Causal chain:
-  FirewallSpike  → CPU spike
-  CPU spike      → Latency spike
-  CPU spike      → Packet drop
-  Packet drop    → Service timeout
-
-Q3 — Correlated alarms:
-  Latency spike ↔ Packet drop  (both caused by CPU, not by each other)
-
-Q4 — Alarm concentration:
-  Router R1    : 3 alarms  ← hotspot
-  Firewall FW1 : 1 alarm   ← root cause device
-  Web Server   : 1 alarm   ← downstream effect
-
-Q5 — MITRE ATT&CK mapping:
-  Incident → Volumetric DDoS → T1498
+Q1 — List all alarms with severity and device
+Q2 — What is the causal chain? Which alarm is the root cause?
+Q3 — Which alarms are correlated (same cause, not causal)?
+Q4 — Which device concentrates the most alarms?
+Q5 — How does this incident map to MITRE ATT&CK?
 ```
+
+**Key finding from Q4 vs Q2 — the co-location trap:**
+
+Q4 flags Router R1 (3 alarms) as the problem device.
+Q2 reveals the root cause is on Firewall FW1 (1 alarm only).
+
+A correlation-based system investigates R1. The causal KG
+identifies FW1 as the single intervention point.
 
 ![Alarm Correlation Graph](results/alarm_correlation_graph.png)
 
 ---
 
-## Key Finding
+### 2. Correlation vs Causal comparison (`src/causal_vs_correlation.py`)
 
-Correlation alone would flag 5 independent anomalies. Causal reasoning
-identifies **one root cause** (firewall inbound spike) and **one
-intervention point** — shutting off the attack traffic at FW1 resolves
-all downstream alarms simultaneously.
+Explicit side-by-side comparison: same 5 alarms, same raw data,
+two different reasoning approaches, fundamentally different conclusions.
 
-This is the empirical argument for Verrou 1: ML agents operating on
-statistical correlations cannot produce this diagnosis. A knowledge graph
-with explicit causal structure can.
+![Correlation vs Causal](results/causal_vs_correlation.png)
 
 ---
 
-## Thesis Implications
+### 3. Counterfactual reasoning & OWL transitive closure (`src/causal_reasoning.py`)
 
-**Verrou 1 — Causality vs Correlation:**
-Q2 vs Q3 illustrates the distinction concretely. The knowledge graph
-encodes Pearl's causal hierarchy: association (Q3), intervention
-(which device to act on), and counterfactual (would removing FW spike
-prevent CPU overload? Yes).
+**Counterfactual (Pearl Level 3):**
+For each alarm, answers: *"If we had intervened on X, how many alarms would not have occurred?"*
 
-**Verrou 2 — KG as Semantic Contract:**
-The RDF graph acts as a shared semantic space for heterogeneous agents.
-An ML agent can write its alarm predictions as RDF triples; a rule-based
-expert can query them via SPARQL. They cooperate without sharing internal
-representations.
+```
+Inbound traffic spike (FW1) → prevents 4 alarms  ← optimal
+CPU overload (R1)           → prevents 3 alarms
+Packet drop (R1)            → prevents 1 alarm
+Latency spike (R1)          → prevents 0 alarms
+Service timeout (WS1)       → prevents 0 alarms
+```
 
-**NORIA-O connection:**
-The ontology classes (Alarm, Incident, NetworkDevice, AttackPattern) and
-properties (causallyLinkedTo, correlatedWith, affectsDevice) directly
-mirror NORIA-O's core structure. This prototype is an instantiation of
-the NORIA-O design for a concrete incident scenario.
+**OWL transitive closure:**
+If A causes B and B causes C, the system automatically infers that A causes C —
+even if this link was never explicitly written in the ontology.
+
+```
+4 explicit causal links in the ontology
+4 new causal links inferred automatically:
+  CPU overload     → Service timeout  (via Packet drop)
+  FW traffic spike → Latency spike    (via CPU)
+  FW traffic spike → Packet drop      (via CPU)
+  FW traffic spike → Service timeout  (via CPU → Packet drop)
+```
+
+![Causal Reasoning](results/causal_reasoning.png)
+
+---
+
+## Results summary
+
+| Capability | What it shows |
+|---|---|
+| SPARQL Q2 vs Q3 | Causal vs correlational reasoning on real alarm data |
+| Co-location trap | R1 (3 alarms) is not the root cause — FW1 (1 alarm) is |
+| Counterfactual | Optimal intervention identified: FW1 stops all 4 downstream alarms |
+| OWL transitive | 4 implicit causal links inferred without explicit encoding |
+| MITRE ATT&CK | Incident automatically mapped to T1498 |
+
+---
+
+## Scientific context
+
+Pearl's causal hierarchy, illustrated concretely on network alarms:
+
+- **Level 1 — Association**: Latency and Packet drop co-occur on R1 (Q3)
+- **Level 2 — Intervention**: Block FW1 traffic, CPU overload stops, all downstream alarms stop (Q2)
+- **Level 3 — Counterfactual**: Without the FW spike, would CPU overload have occurred? No — the KG proves it (counterfactual analysis)
+
+All three levels are impossible with correlation-based ML alone.
+They require structured causal knowledge encoded in the graph.
+
+**NORIA-O alignment:**
+Ontology classes and properties mirror NORIA-O's core structure.
+This prototype is a minimal instantiation of NORIA-O for a concrete DDoS scenario.
+
+---
+
+## Connection to other projects
+
+| Project | Layer | Core question |
+|---|---|---|
+| [stream-anomaly-benchmark](https://github.com/moncefabel/stream-anomaly-benchmark) | Detection | When to trigger a decision under time constraints |
+| [belief-fusion-diagnosis](https://github.com/moncefabel/belief-fusion-diagnosis) | Arbitration | How to fuse conflicting agent beliefs |
+| **alarm-correlation-rdf** | Reasoning | What to reason about — causal structure of alarms |
+
+Together: **detect early → fuse beliefs → reason causally**
 
 ---
 
@@ -133,7 +163,9 @@ cd alarm-correlation-rdf
 uv venv && source .venv/bin/activate
 uv pip install -r requirements.txt
 
-python src/alarm_correlation.py
+python src/alarm_correlation.py      # SPARQL queries
+python src/causal_vs_correlation.py  # comparison
+python src/causal_reasoning.py       # counterfactual + OWL
 ```
 
 ---
@@ -143,12 +175,15 @@ python src/alarm_correlation.py
 ```
 alarm-correlation-rdf/
 ├── ontology/
-│   └── network_alarm.ttl    # RDF/OWL ontology (Turtle format)
+│   └── alarm_ontology.ttl           # RDF/OWL ontology (102 triples)
 ├── src/
-│   ├── alarm_correlation.py # SPARQL queries + graph visualisation
-│   └── __init__.py
+│   ├── alarm_correlation.py         # 5 SPARQL diagnostic queries
+│   ├── causal_vs_correlation.py     # explicit comparison
+│   └── causal_reasoning.py          # counterfactual + OWL transitive
 ├── results/
-│   └── alarm_correlation_graph.png
+│   ├── alarm_correlation_graph.png
+│   ├── causal_vs_correlation.png
+│   └── causal_reasoning.png
 ├── README.md
 ├── RESEARCH_NOTES.md
 └── requirements.txt
@@ -156,32 +191,15 @@ alarm-correlation-rdf/
 
 ---
 
-## Connection to other projects
-
-| Project | Layer | Thesis verrou |
-|---|---|---|
-| [stream-anomaly-benchmark](https://github.com/moncefabel/stream-anomaly-benchmark) | When to trigger | Verrou 4 |
-| [belief-fusion-diagnosis](https://github.com/moncefabel/belief-fusion-diagnosis) | How to arbitrate | Verrou 3 |
-| **alarm-correlation-rdf** | What to reason about | Verrou 1 & 2 |
-
-Together the three repositories prototype the full diagnostic pipeline:
-**detect early → fuse beliefs → reason causally**.
-
----
-
 ## References
 
-- Tailhardat, L., Chabot, Y., & Troncy, R. (2023). NORIA-O: an Ontology
-  for Anomaly Detection and Incident Management in ICT Systems. *ESWC 2023*.
-- Pearl, J. (2009). *Causality: Models, Reasoning, and Inference* (2nd ed.).
-  Cambridge University Press.
-- MITRE ATT&CK Framework. T1498 — Network Denial of Service.
-  https://attack.mitre.org/techniques/T1498/
-- Brickley, D., & Guha, R. V. (2014). RDF Schema 1.1. W3C Recommendation.
+- Tailhardat, L., Chabot, Y., & Troncy, R. (2023). NORIA-O: an Ontology for Anomaly Detection and Incident Management in ICT Systems. *ESWC 2023*.
+- Pearl, J. (2009). *Causality: Models, Reasoning, and Inference* (2nd ed.). Cambridge University Press.
+- MITRE ATT&CK. T1498 — Network Denial of Service. https://attack.mitre.org/techniques/T1498/
 
 ---
 
 ## Author
 
 **Moncef Bouhabel** — ML Engineer, Master ML for Data Science, Université Paris Cité
-[github.com/moncefabel](https://github.com/moncefabel) 
+[github.com/moncefabel](https://github.com/moncefabel)
