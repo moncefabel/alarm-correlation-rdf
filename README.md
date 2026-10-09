@@ -114,6 +114,21 @@ even if this link was never explicitly written in the ontology.
 
 ---
 
+### 4. Natural language to SPARQL agents ([`kgqa/`](kgqa/))
+Can an LLM agent answer these questions from plain language? Two agent topologies,
+a ReAct loop and a hierarchical orchestrator, translate questions into SPARQL over
+this graph. Model, prompts, schema context and benchmark are held constant; only
+the control flow differs, so the comparison isolates the topology.
+
+- 32-question benchmark across factual, causal, correlation-vs-causation,
+  counterfactual and out-of-scope buckets, every gold query checked against a
+  hand-written answer
+- symbolic gate rejecting IRIs absent from the graph before execution
+- runs on in-memory rdflib or Apache Jena Fuseki (`SPARQL_ENDPOINT`)
+- 96 offline tests, no API key required
+
+See [`kgqa/README.md`](kgqa/README.md). LLM results are not reported yet.
+
 ## Results summary
 
 | Capability | What it shows |
@@ -185,6 +200,7 @@ alarm-correlation-rdf/
 │   ├── causal_vs_correlation.png
 │   └── causal_reasoning.png
 ├── README.md
+├── kgqa/                           # NL -> SPARQL agents, benchmark, tests
 ├── RESEARCH_NOTES.md
 └── requirements.txt
 ```
