@@ -1,0 +1,21 @@
+# Apache Jena Fuseki for the NL -> SPARQL benchmark.
+#
+#   docker compose -f kgqa/docker-compose.yml up -d
+#   bash kgqa/scripts/load_fuseki.sh
+#   export SPARQL_ENDPOINT=http://localhost:3030/alarms/query
+#
+# The in-memory rdflib graph stays the default for tests; this is the path the
+# benchmark runs against once SPARQL_ENDPOINT is set.
+services:
+  fuseki:
+    image: stain/jena-fuseki
+    container_name: kgqa-fuseki
+    ports:
+      - "3030:3030"
+    environment:
+      ADMIN_PASSWORD: ${FUSEKI_ADMIN_PASSWORD:-admin}
+      JVM_ARGS: "-Xmx1g"
+    volumes:
+      - fuseki-data:/fuseki
+volumes:
+  fuseki-data:
