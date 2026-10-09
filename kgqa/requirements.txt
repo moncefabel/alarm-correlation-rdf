@@ -1,0 +1,5 @@
+rdflib>=7.0
+langgraph>=0.2
+pyyaml>=6.0
+openai>=1.30
+pytest>=8.0
