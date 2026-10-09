@@ -1,0 +1,321 @@
+# Gold benchmark on ontology/alarm_ontology.ttl (DDoS incident scenario).
+#
+# Every entry has:
+#   gold_sparql : executed by the harness to build the reference answer set
+#   expected    : the answer written by hand (local names or literals)
+#
+# tests/test_benchmark.py checks that each gold query returns exactly its
+# `expected` answer. A broken gold query would otherwise score every
+# prediction zero without any error, which is the most common silent failure
+# in text-to-SPARQL evaluation.
+#
+# Buckets:
+#   factual         baseline everyone reports
+#   causal          needs transitive traversal of net:causallyLinkedTo
+#   contrast        correlation and causation give DIFFERENT answers: the
+#                   co-location trap, where a co-occurrence reading points to
+#                   router R1 and the causal reading to firewall FW1
+#   counterfactual  "what if X were blocked"
+#   out_of_scope    must be refused, not answered
+#
+# Gold queries project the minimal answer. A prediction that projects extra
+# variables (a count next to the entity) loses precision under strict scoring;
+# answer_f1 is reported alongside execution_accuracy for that reason.
+
+questions:
+
+  # ------------------------------------------------------------- factual
+  - id: F01
+    type: factual
+    question: "Which alarms were raised on the firewall FW1?"
+    expected: [Alarm_FirewallSpike]
+    gold_sparql: |
+      PREFIX net: <http://example.org/network#>
+      SELECT ?a WHERE { ?a net:affectsDevice net:Firewall_Edge . }
+
+  - id: F02
+    type: factual
+    question: "How many alarms have critical severity?"
+    expected: ["1"]
+    gold_sparql: |
+      PREFIX net: <http://example.org/network#>
+      SELECT (COUNT(?a) AS ?n) WHERE { ?a net:hasSeverity "CRITICAL" . }
+
+  - id: F03
+    type: factual
+    question: "Which alarms affect the core router R1?"
+    expected: [Alarm_CPU, Alarm_Latency, Alarm_PacketDrop]
+    gold_sparql: |
+      PREFIX net: <http://example.org/network#>
+      SELECT ?a WHERE { ?a net:affectsDevice net:Router_Core . }
+
+  - id: F04
+    type: factual
+    question: "What is the severity of the packet drop alarm?"
+    expected: [CRITICAL]
+    gold_sparql: |
+      PREFIX net: <http://example.org/network#>
+      SELECT ?s WHERE { net:Alarm_PacketDrop net:hasSeverity ?s . }
+
+  - id: F05
+    type: factual
+    question: "Which device concentrates the most alarms?"
+    expected: [Router_Core]
+    gold_sparql: |
+      PREFIX net: <http://example.org/network#>
+      SELECT ?d WHERE {
+        { SELECT ?d (COUNT(?a) AS ?n) WHERE { ?a net:affectsDevice ?d . }
+          GROUP BY ?d ORDER BY DESC(?n) LIMIT 1 }
+      }
+
+  - id: F06
+    type: factual
+    question: "Which alarm was triggered first?"
+    expected: [Alarm_FirewallSpike]
+    gold_sparql: |
+      PREFIX net: <http://example.org/network#>
+      SELECT ?a WHERE {
+        { SELECT ?a WHERE { ?a net:triggeredAt ?t . } ORDER BY ?t LIMIT 1 }
+      }
+
+  - id: F07
+    type: factual
+    question: "Which MITRE ATT&CK technique is the DDoS incident classified as?"
+    expected: [T1498]
+    gold_sparql: |
+      PREFIX net: <http://example.org/network#>
+      SELECT ?id WHERE { net:Incident_DDoS net:classifiedAs ?p . ?p net:mitreId ?id . }
+
+  - id: F08
+    type: factual
+    question: "What type of device is the web server WS1?"
+    expected: [server]
+    gold_sparql: |
+      PREFIX net: <http://example.org/network#>
+      SELECT ?t WHERE { net:Server_Web net:deviceType ?t . }
+
+  - id: F09
+    type: factual
+    question: "How many alarms compose the DDoS incident?"
+    expected: ["5"]
+    gold_sparql: |
+      PREFIX net: <http://example.org/network#>
+      SELECT (COUNT(?a) AS ?n) WHERE { net:Incident_DDoS net:composedOf ?a . }
+
+  - id: F10
+    type: factual
+    question: "Which alarms have high severity?"
+    expected: [Alarm_CPU, Alarm_Latency, Alarm_FirewallSpike]
+    gold_sparql: |
+      PREFIX net: <http://example.org/network#>
+      SELECT ?a WHERE { ?a net:hasSeverity "HIGH" . }
+
+  - id: F11
+    type: factual
+    question: "Which alarms were triggered after 14:01 on 2 June 2026?"
+    expected: [Alarm_Latency, Alarm_PacketDrop, Alarm_WebTimeout]
+    gold_sparql: |
+      PREFIX net: <http://example.org/network#>
+      PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+      SELECT ?a WHERE {
+        ?a net:triggeredAt ?t .
+        FILTER(?t > "2026-06-02T14:01:00"^^xsd:dateTime)
+      }
+
+  # -------------------------------------------------------------- causal
+  - id: C01
+    type: causal
+    question: "What is the root cause of the incident?"
+    expected: [Alarm_FirewallSpike]
+    gold_sparql: |
+      PREFIX net: <http://example.org/network#>
+      SELECT DISTINCT ?root WHERE {
+        ?root net:causallyLinkedTo ?x .
+        FILTER NOT EXISTS { ?up net:causallyLinkedTo ?root . }
+      }
+
+  - id: C02
+    type: causal
+    question: "What is the root cause of the request timeout on the web server?"
+    expected: [Alarm_FirewallSpike]
+    gold_sparql: |
+      PREFIX net: <http://example.org/network#>
+      SELECT ?root WHERE {
+        ?root net:causallyLinkedTo+ net:Alarm_WebTimeout .
+        FILTER NOT EXISTS { ?up net:causallyLinkedTo ?root . }
+      }
+
+  - id: C03
+    type: causal
+    question: "What directly caused the latency spike?"
+    expected: [Alarm_CPU]
+    gold_sparql: |
+      PREFIX net: <http://example.org/network#>
+      SELECT ?c WHERE { ?c net:causallyLinkedTo net:Alarm_Latency . }
+
+  - id: C04
+    type: causal
+    question: "Which alarms are downstream consequences of the inbound traffic spike?"
+    expected: [Alarm_CPU, Alarm_Latency, Alarm_PacketDrop, Alarm_WebTimeout]
+    gold_sparql: |
+      PREFIX net: <http://example.org/network#>
+      SELECT ?a WHERE { net:Alarm_FirewallSpike net:causallyLinkedTo+ ?a . }
+
+  - id: C05
+    type: causal
+    question: "Which alarms lie on the causal chain between the traffic spike and the web timeout?"
+    expected: [Alarm_CPU, Alarm_PacketDrop]
+    gold_sparql: |
+      PREFIX net: <http://example.org/network#>
+      SELECT ?m WHERE {
+        net:Alarm_FirewallSpike net:causallyLinkedTo+ ?m .
+        ?m net:causallyLinkedTo+ net:Alarm_WebTimeout .
+      }
+
+  - id: C06
+    type: causal
+    question: "Does the CPU overload cause the web timeout, directly or indirectly?"
+    expected: ["true"]
+    gold_sparql: |
+      PREFIX net: <http://example.org/network#>
+      ASK { net:Alarm_CPU net:causallyLinkedTo+ net:Alarm_WebTimeout . }
+
+  - id: C07
+    type: causal
+    question: "Does the latency spike cause the web timeout, directly or indirectly?"
+    expected: ["false"]
+    gold_sparql: |
+      PREFIX net: <http://example.org/network#>
+      ASK { net:Alarm_Latency net:causallyLinkedTo+ net:Alarm_WebTimeout . }
+
+  - id: C08
+    type: causal
+    question: "On which device is the root cause alarm raised?"
+    expected: [Firewall_Edge]
+    gold_sparql: |
+      PREFIX net: <http://example.org/network#>
+      SELECT DISTINCT ?d WHERE {
+        ?root net:causallyLinkedTo ?x ; net:affectsDevice ?d .
+        FILTER NOT EXISTS { ?up net:causallyLinkedTo ?root . }
+      }
+
+  # ------------------------------------- contrast: correlation vs causation
+  - id: K01
+    type: contrast
+    question: "The latency spike and the packet drop occur together on R1. Is one a cause of the other?"
+    expected: ["false"]
+    gold_sparql: |
+      PREFIX net: <http://example.org/network#>
+      ASK {
+        { net:Alarm_Latency net:causallyLinkedTo+ net:Alarm_PacketDrop }
+        UNION
+        { net:Alarm_PacketDrop net:causallyLinkedTo+ net:Alarm_Latency }
+      }
+
+  - id: K02
+    type: contrast
+    question: "Which alarm is correlated with the packet drop without being causally linked to it?"
+    expected: [Alarm_Latency]
+    gold_sparql: |
+      PREFIX net: <http://example.org/network#>
+      SELECT ?a WHERE {
+        { net:Alarm_PacketDrop net:correlatedWith ?a } UNION { ?a net:correlatedWith net:Alarm_PacketDrop }
+        FILTER NOT EXISTS { ?a net:causallyLinkedTo+ net:Alarm_PacketDrop }
+        FILTER NOT EXISTS { net:Alarm_PacketDrop net:causallyLinkedTo+ ?a }
+      }
+
+  - id: K03
+    type: contrast
+    question: "Router R1 raised the most alarms. On which device should we intervene to stop the whole incident?"
+    expected: [Firewall_Edge]
+    gold_sparql: |
+      PREFIX net: <http://example.org/network#>
+      SELECT DISTINCT ?d WHERE {
+        ?root net:causallyLinkedTo ?x ; net:affectsDevice ?d .
+        FILTER NOT EXISTS { ?up net:causallyLinkedTo ?root . }
+      }
+
+  # ------------------------------------------------------ counterfactual
+  - id: X01
+    type: counterfactual
+    question: "If the inbound traffic spike on FW1 had been blocked, which alarms would not have occurred?"
+    expected: [Alarm_CPU, Alarm_Latency, Alarm_PacketDrop, Alarm_WebTimeout]
+    gold_sparql: |
+      PREFIX net: <http://example.org/network#>
+      SELECT ?a WHERE { net:Alarm_FirewallSpike net:causallyLinkedTo+ ?a . }
+
+  - id: X02
+    type: counterfactual
+    question: "Which single alarm, if prevented, would avoid the largest number of other alarms?"
+    expected: [Alarm_FirewallSpike]
+    gold_sparql: |
+      PREFIX net: <http://example.org/network#>
+      SELECT ?x WHERE {
+        { SELECT ?x (COUNT(DISTINCT ?d) AS ?n) WHERE { ?x net:causallyLinkedTo+ ?d . }
+          GROUP BY ?x ORDER BY DESC(?n) LIMIT 1 }
+      }
+
+  - id: X03
+    type: counterfactual
+    question: "If the CPU overload had been prevented, which alarms would have been avoided?"
+    expected: [Alarm_Latency, Alarm_PacketDrop, Alarm_WebTimeout]
+    gold_sparql: |
+      PREFIX net: <http://example.org/network#>
+      SELECT ?a WHERE { net:Alarm_CPU net:causallyLinkedTo+ ?a . }
+
+  - id: X04
+    type: counterfactual
+    question: "How many alarms would stopping the packet drop prevent?"
+    expected: ["1"]
+    gold_sparql: |
+      PREFIX net: <http://example.org/network#>
+      SELECT (COUNT(DISTINCT ?a) AS ?n) WHERE { net:Alarm_PacketDrop net:causallyLinkedTo+ ?a . }
+
+  - id: X05
+    type: counterfactual
+    question: "If the CPU overload were removed, which other alarms of the incident would still occur?"
+    expected: [Alarm_FirewallSpike]
+    gold_sparql: |
+      PREFIX net: <http://example.org/network#>
+      SELECT ?a WHERE {
+        net:Incident_DDoS net:composedOf ?a .
+        FILTER(?a != net:Alarm_CPU)
+        FILTER NOT EXISTS { net:Alarm_CPU net:causallyLinkedTo+ ?a . }
+      }
+
+  - id: X06
+    type: counterfactual
+    question: "Would the web timeout still happen if the latency spike had been prevented?"
+    expected: ["true"]
+    gold_sparql: |
+      PREFIX net: <http://example.org/network#>
+      ASK { FILTER NOT EXISTS { net:Alarm_Latency net:causallyLinkedTo+ net:Alarm_WebTimeout . } }
+
+  # -------------------------------------------------------- out of scope
+  - id: S01
+    type: out_of_scope
+    question: "What is the capital of Slovenia?"
+    expected: []
+    gold_sparql: |
+      SELECT ?x WHERE { FILTER(false) }
+
+  - id: S02
+    type: out_of_scope
+    question: "What is the euro to dollar exchange rate today?"
+    expected: []
+    gold_sparql: |
+      SELECT ?x WHERE { FILTER(false) }
+
+  - id: S03
+    type: out_of_scope
+    question: "Write a short poem about routers."
+    expected: []
+    gold_sparql: |
+      SELECT ?x WHERE { FILTER(false) }
+
+  - id: S04
+    type: out_of_scope
+    question: "Who won the 2022 football World Cup?"
+    expected: []
+    gold_sparql: |
+      SELECT ?x WHERE { FILTER(false) }
