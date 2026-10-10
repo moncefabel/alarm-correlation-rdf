@@ -79,7 +79,7 @@ From the repository root:
 ```bash
 pip install -r kgqa/requirements.txt
 
-# offline tests: no API key, no network (99 tests)
+# offline tests: no API key, no network (101 tests)
 pytest kgqa/tests -q
 
 # benchmark against any OpenAI-compatible endpoint (OpenAI, Groq, Mistral, vLLM, Ollama)
@@ -122,7 +122,10 @@ next to accuracy.
 Gemma (open weights) on the Gemini API free tier also works through
 `OPENAI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/`. It is
 served without a system role; the client then prepends the instructions to the
-user turn, identically for both topologies.
+user turn, identically for both topologies. Gemma also returns its reasoning
+inside the answer (`<thought>...</thought>`); reasoning blocks are removed
+before the query is extracted, for every model. Every retry (timeout, rate
+limit) is printed with its wait, and `--timeout` sets the per-answer limit.
 
 `gpt-oss-120b` and `gpt-oss-20b` are open-weight models, so results can be
 reproduced on self-hosted infrastructure; running both also gives a model-size

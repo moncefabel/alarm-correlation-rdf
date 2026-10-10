@@ -17,6 +17,8 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
+import time
 import statistics as stats
 import sys
 from pathlib import Path
@@ -34,8 +36,30 @@ from schema_context import SchemaIndex  # noqa: E402
 # Plug your provider here. Kept behind one function so the topology
 # comparison is model-controlled: both arms call exactly this.
 # --------------------------------------------------------------------------
+_THOUGHT = re.compile(r"<(thought|think|thinking)>.*?</\1>", re.S | re.I)
+
+
+def strip_thoughts(text: str) -> str:
+    """Remove reasoning blocks some providers return inside the answer
+    (Gemma on the Gemini API: <thought>...</thought>). Left in place, a draft
+    query or the word OUT_OF_SCOPE inside the reasoning would be taken as the
+    answer. Applied to every model, so both topologies see the same text."""
+    return _THOUGHT.sub("", text).strip()
+
+
+def _retry_after(exc) -> float | None:
+    headers = getattr(getattr(exc, "response", None), "headers", None) or {}
+    for key, scale in (("retry-after-ms", 0.001), ("retry-after", 1.0)):
+        try:
+            return float(headers[key]) * scale
+        except (KeyError, TypeError, ValueError):
+            continue
+    return None
+
+
 def make_llm(model: str = "gpt-4o", seed: int | None = None,
-             reasoning_effort: str | None = None, max_retries: int = 8):
+             reasoning_effort: str | None = None, max_retries: int = 8,
+             timeout: float = 180.0):
     """One function, called by both topologies.
 
     Works with any OpenAI-compatible endpoint (OPENAI_BASE_URL): OpenAI, Groq,
@@ -43,10 +67,14 @@ def make_llm(model: str = "gpt-4o", seed: int | None = None,
     with exponential backoff and honours the provider's retry-after header,
     which matters on free tiers where a long run would otherwise stop halfway.
     """
-    from openai import BadRequestError, OpenAI
+    from openai import (APIConnectionError, APITimeoutError, BadRequestError,
+                        InternalServerError, OpenAI, RateLimitError)
+    # Retries are done here rather than inside the SDK so that every wait is
+    # printed: a slow free-tier model otherwise looks like a frozen terminal.
     client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY", "not-needed"),
                     base_url=os.environ.get("OPENAI_BASE_URL"),
-                    max_retries=max_retries, timeout=120)
+                    max_retries=0, timeout=timeout)
+    transient = (APITimeoutError, APIConnectionError, RateLimitError, InternalServerError)
     extra: dict = {}
     if seed is not None:
         extra["seed"] = seed
@@ -64,8 +92,20 @@ def make_llm(model: str = "gpt-4o", seed: int | None = None,
                 {"role": "user", "content": user}]
 
     def call(system: str, user: str):
-        return client.chat.completions.create(model=model, temperature=0,
-                                              messages=build(system, user), **extra)
+        for attempt in range(max_retries + 1):
+            try:
+                return client.chat.completions.create(
+                    model=model, temperature=0, messages=build(system, user), **extra)
+            except transient as exc:
+                if attempt == max_retries:
+                    raise
+                wait = _retry_after(exc)
+                wait = min(wait if wait is not None else 2.0 * 2 ** attempt, 120.0)
+                kind = ("timeout after %.0fs" % timeout if isinstance(exc, APITimeoutError)
+                        else type(exc).__name__)
+                print(f"  [llm] {kind}; retry {attempt + 1}/{max_retries} in {wait:.0f}s",
+                      flush=True)
+                time.sleep(wait)
 
     def llm(system: str, user: str) -> str:
         try:
@@ -92,7 +132,7 @@ def make_llm(model: str = "gpt-4o", seed: int | None = None,
             usage["prompt"] += r.usage.prompt_tokens or 0
             usage["completion"] += r.usage.completion_tokens or 0
             usage["total"] += r.usage.total_tokens or 0
-        return r.choices[0].message.content or ""
+        return strip_thoughts(r.choices[0].message.content or "")
     llm.usage = usage          # read by evaluate() to report tokens per question
     return llm
 
@@ -230,8 +270,12 @@ def main() -> None:
                     help="Only the first N questions (smoke test, saves quota).")
     ap.add_argument("--ids", default="",
                     help="Comma-separated question ids, e.g. F01,C01,K03,S01.")
-    ap.add_argument("--reasoning-effort", default=None, choices=["low", "medium", "high"],
-                    help="For reasoning models (gpt-oss): low saves tokens on free tiers.")
+    ap.add_argument("--reasoning-effort", default=None,
+                    choices=["none", "low", "medium", "high"],
+                    help="low saves tokens on gpt-oss; none asks thinking models to skip "
+                         "reasoning. Dropped automatically if the provider rejects it.")
+    ap.add_argument("--timeout", type=float, default=180.0,
+                    help="Seconds to wait for one model answer before retrying.")
     ap.add_argument("--no-schema-retrieval", action="store_true",
                     help="Ablation: dump the full ontology instead of retrieving.")
     ap.add_argument("--out", default="kgqa/results")
@@ -268,7 +312,7 @@ def main() -> None:
         for seed in seeds:
             print(f"\n=== {t} | run {seed} ===")
             llm = make_llm(args.model, seed=seed if len(seeds) > 1 or args.seed is not None else None,
-                           reasoning_effort=args.reasoning_effort)
+                           reasoning_effort=args.reasoning_effort, timeout=args.timeout)
             res = evaluate(t, questions, schema, store, llm, **flags)
             per_run.append(res["summary"])
             tag = f"{t}{suffix}_run{seed}"

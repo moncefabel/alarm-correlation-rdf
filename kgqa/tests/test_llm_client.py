@@ -35,7 +35,10 @@ def _completion(content: str) -> bytes:
 
 class FakeProvider:
     def __init__(self, rate_limit_first: int = 0, reject_seed: bool = False,
-                 reject_system: bool = False):
+                 reject_system: bool = False, answer: str = "SELECT ?a WHERE { ?a ?p ?o }",
+                 slow_first: float = 0.0):
+        self.answer = answer
+        self.slow_first = slow_first
         self.rate_limit_first = rate_limit_first
         self.reject_seed = reject_seed
         self.reject_system = reject_system
@@ -48,6 +51,9 @@ class FakeProvider:
             def do_POST(self):  # noqa: N802
                 body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
                 provider.bodies.append(body)
+                if provider.slow_first and len(provider.bodies) == 1:
+                    import time as _t
+                    _t.sleep(provider.slow_first)
                 if len(provider.bodies) <= provider.rate_limit_first:
                     self._send(429, json.dumps({"error": {"message": "rate limited"}}).encode(),
                                {"retry-after-ms": "10"})
@@ -61,7 +67,7 @@ class FakeProvider:
                         "message": "seed is not supported",
                         "type": "invalid_request_error"}}).encode())
                 else:
-                    self._send(200, _completion("SELECT ?a WHERE { ?a ?p ?o }"))
+                    self._send(200, _completion(provider.answer))
 
             def _send(self, code, payload, headers=None):
                 self.send_response(code)
@@ -162,3 +168,25 @@ def test_model_without_system_role_gets_instructions_in_user_turn(serve):
     assert [m["role"] for m in last["messages"]] == ["user"]
     assert last["messages"][0]["content"].startswith("Rules here.\n\nQuestion: y")
     assert "seed" not in last
+
+
+def test_reasoning_block_in_the_answer_is_removed(serve):
+    """Gemma on the Gemini API returns <thought>...</thought> inside the content.
+    A draft query or OUT_OF_SCOPE inside it must not be taken as the answer."""
+    final = "PREFIX net: <http://example.org/network#>\nSELECT ?a WHERE { ?a ?p ?o }"
+    serve(FakeProvider(answer="<thought>Maybe OUT_OF_SCOPE?\nSELECT ?draft WHERE {}\n"
+                              "No, it is answerable.</thought>" + final))
+    out = make_llm("gemma")("sys", "user")
+    assert out == final
+
+    from agents import strip_fences
+    assert strip_fences(out) == final
+
+
+def test_timeout_is_retried_and_announced(serve, capsys):
+    """A slow free-tier model must not look like a frozen terminal."""
+    p = serve(FakeProvider(slow_first=1.5))
+    out = make_llm("gemma", timeout=0.5, max_retries=2)("sys", "user")
+    assert out.startswith("SELECT")
+    assert len(p.bodies) == 2
+    assert "timeout after 0s; retry 1/2" in capsys.readouterr().out
