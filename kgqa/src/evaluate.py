@@ -53,22 +53,47 @@ def make_llm(model: str = "gpt-4o", seed: int | None = None,
     if reasoning_effort:
         extra["reasoning_effort"] = reasoning_effort
 
+    usage = {"prompt": 0, "completion": 0, "total": 0}
+
+    merge_system = [False]
+
+    def build(system: str, user: str) -> list[dict]:
+        if merge_system[0]:
+            return [{"role": "user", "content": f"{system}\n\n{user}"}]
+        return [{"role": "system", "content": system},
+                {"role": "user", "content": user}]
+
+    def call(system: str, user: str):
+        return client.chat.completions.create(model=model, temperature=0,
+                                              messages=build(system, user), **extra)
+
     def llm(system: str, user: str) -> str:
-        messages = [{"role": "system", "content": system},
-                    {"role": "user", "content": user}]
         try:
-            r = client.chat.completions.create(model=model, temperature=0,
-                                               messages=messages, **extra)
+            r = call(system, user)
         except BadRequestError as exc:
-            # Some providers reject seed or reasoning_effort: drop them once,
-            # keep going, and say so rather than failing the whole run.
-            if not extra:
+            # Providers differ in what they accept. Two known cases are handled
+            # once and announced, never silently: optional parameters (seed,
+            # reasoning_effort) are dropped, and models served without a system
+            # role (Gemma on the Gemini API) get the instructions prepended to
+            # the user turn. Both arms call this same function, so whatever is
+            # adapted is adapted identically for both topologies.
+            msg = str(exc).lower()
+            if not merge_system[0] and ("system" in msg or "developer instruction" in msg):
+                print(f"  [llm] provider rejected the system role: {exc}. "
+                      "Prepending instructions to the user turn.")
+                merge_system[0] = True
+            elif extra:
+                print(f"  [llm] provider rejected {sorted(extra)}: {exc}. Retrying without.")
+                extra.clear()
+            else:
                 raise
-            print(f"  [llm] provider rejected {sorted(extra)}: {exc}. Retrying without.")
-            extra.clear()
-            r = client.chat.completions.create(model=model, temperature=0,
-                                               messages=messages)
+            return llm(system, user)
+        if r.usage is not None:
+            usage["prompt"] += r.usage.prompt_tokens or 0
+            usage["completion"] += r.usage.completion_tokens or 0
+            usage["total"] += r.usage.total_tokens or 0
         return r.choices[0].message.content or ""
+    llm.usage = usage          # read by evaluate() to report tokens per question
     return llm
 
 
@@ -108,8 +133,11 @@ def evaluate(topology: str, questions: list[dict], schema: SchemaIndex,
              else build_orchestrator(llm, schema, store, **flags))
     rows, traces = [], []
     labels = label_index(store)
+    usage = getattr(llm, "usage", None)
     for q in questions:
+        before = usage["total"] if usage else 0
         tr = run(agent, q["question"], topology, store)
+        tokens = (usage["total"] - before) if usage else 0
         qtype = q.get("type", "factual")
         if qtype == "out_of_scope":
             # Correct behaviour is to refuse. An executed query that happens to
@@ -126,10 +154,11 @@ def evaluate(topology: str, questions: list[dict], schema: SchemaIndex,
             "repairs": tr.repairs, "llm_calls": tr.llm_calls, "seconds": tr.seconds,
             "hallucinated": len(tr.hallucinated_uris),
             "provenance_triples": len(tr.provenance),
+            "tokens": tokens,
         })
         traces.append(tr.__dict__)
         print(f"  [{topology}] {q['id']:<8} F1={f:.2f} valid={tr.ok} "
-              f"repairs={tr.repairs} calls={tr.llm_calls}")
+              f"repairs={tr.repairs} calls={tr.llm_calls} tokens={tokens}")
 
     def mean(k):
         return round(stats.mean([r[k] for r in rows]), 4) if rows else 0.0
@@ -142,6 +171,8 @@ def evaluate(topology: str, questions: list[dict], schema: SchemaIndex,
         "hallucinated_uri_rate": round(
             sum(r["hallucinated"] > 0 for r in rows) / max(len(rows), 1), 4),
         "mean_repairs": mean("repairs"),
+        "mean_tokens": mean("tokens"),          # cost per question, all calls
+        "total_tokens": sum(r["tokens"] for r in rows),
         "mean_llm_calls": mean("llm_calls"),        # the cost axis mKGQAgent reports
         "mean_seconds": mean("seconds"),
     }
@@ -170,6 +201,19 @@ def aggregate(runs: list[dict]) -> dict:
     return out
 
 
+def aggregate_dir(out: Path, topos: list[str], suffix: str = "") -> list[dict]:
+    """Aggregate every <topology><suffix>_run<seed>.json found in out."""
+    final = []
+    for t in topos:
+        files = sorted(out.glob(f"{t}{suffix}_run*.json"))
+        if not files:
+            raise SystemExit(f"no run files for {t} in {out}")
+        runs = [json.loads(f.read_text())["summary"] for f in files]
+        print(f"{t}: aggregating {', '.join(f.name for f in files)}")
+        final.append(aggregate(runs))
+    return final
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--questions", default="kgqa/benchmark/questions.yaml")
@@ -177,6 +221,11 @@ def main() -> None:
     ap.add_argument("--topology", default="both", choices=["react", "orchestrator", "both"])
     ap.add_argument("--model", default="gpt-4o")
     ap.add_argument("--runs", type=int, default=1, help="Repeated runs, seeds 0..runs-1.")
+    ap.add_argument("--seed", type=int, default=None,
+                    help="Run only this seed, saved as run<seed>. Lets runs be spread "
+                         "over several days when a daily token quota is too small.")
+    ap.add_argument("--aggregate", action="store_true",
+                    help="Call no model: rebuild summary.json from the run files in --out.")
     ap.add_argument("--limit", type=int, default=0,
                     help="Only the first N questions (smoke test, saves quota).")
     ap.add_argument("--ids", default="",
@@ -187,6 +236,14 @@ def main() -> None:
                     help="Ablation: dump the full ontology instead of retrieving.")
     ap.add_argument("--out", default="kgqa/results")
     args = ap.parse_args()
+
+    topos = ["react", "orchestrator"] if args.topology == "both" else [args.topology]
+    suffix = "_fullschema" if args.no_schema_retrieval else ""
+    if args.aggregate:
+        final = aggregate_dir(Path(args.out), topos, suffix)
+        Path(args.out, "summary.json").write_text(json.dumps(final, indent=2))
+        print(json.dumps(final, indent=2))
+        return
 
     schema = SchemaIndex(args.ontology)
     register_schema(schema)
@@ -204,20 +261,24 @@ def main() -> None:
     flags = {"retrieve_schema": not args.no_schema_retrieval}
 
     Path(args.out).mkdir(parents=True, exist_ok=True)
-    topos = ["react", "orchestrator"] if args.topology == "both" else [args.topology]
+    seeds = [args.seed] if args.seed is not None else list(range(args.runs))
     final = []
     for t in topos:
         per_run = []
-        for seed in range(args.runs):
+        for seed in seeds:
             print(f"\n=== {t} | run {seed} ===")
-            llm = make_llm(args.model, seed=seed if args.runs > 1 else None,
+            llm = make_llm(args.model, seed=seed if len(seeds) > 1 or args.seed is not None else None,
                            reasoning_effort=args.reasoning_effort)
             res = evaluate(t, questions, schema, store, llm, **flags)
             per_run.append(res["summary"])
-            tag = f"{t}{'_fullschema' if args.no_schema_retrieval else ''}_run{seed}"
+            tag = f"{t}{suffix}_run{seed}"
             Path(args.out, f"{tag}.json").write_text(json.dumps(res, indent=2, default=str))
         final.append(aggregate(per_run))
 
+    if args.seed is not None:
+        # A single seed is one piece of a multi-day run: summarise every run
+        # file present so far rather than only this one.
+        final = aggregate_dir(Path(args.out), topos, suffix)
     Path(args.out, "summary.json").write_text(json.dumps(final, indent=2))
     print("\n=== SUMMARY ===")
     print(json.dumps(final, indent=2))

@@ -67,7 +67,8 @@ answer, since a broken gold query would score every prediction zero silently.
 - `query_validity_rate`: executed without error (refusals count as valid)
 - `hallucinated_uri_rate`: share of questions whose final query references an
   IRI absent from the graph
-- `mean_repairs`, `mean_llm_calls` (cost proxy), `mean_seconds`
+- `mean_repairs`, `mean_llm_calls`, `mean_tokens` and `total_tokens` (cost),
+  `mean_seconds`
 - `refusal_accuracy` on out-of-scope questions, `false_refusal_rate` on the rest
 - every metric reported as mean and standard deviation over `--runs`
 
@@ -78,7 +79,7 @@ From the repository root:
 ```bash
 pip install -r kgqa/requirements.txt
 
-# offline tests: no API key, no network (96 tests)
+# offline tests: no API key, no network (99 tests)
 pytest kgqa/tests -q
 
 # benchmark against any OpenAI-compatible endpoint (OpenAI, Groq, Mistral, vLLM, Ollama)
@@ -103,6 +104,25 @@ python kgqa/src/evaluate.py --model openai/gpt-oss-20b --ids F01,C04,K03,X02,S01
 # full benchmark
 python kgqa/src/evaluate.py --model openai/gpt-oss-120b --runs 3 --reasoning-effort low
 ```
+
+When the daily token quota fits only one pass, spread the runs over several
+days. `--seed` runs one pass and `summary.json` always covers every run file
+already in `--out`; `--aggregate` rebuilds it without calling a model.
+
+```bash
+python kgqa/src/evaluate.py --model openai/gpt-oss-120b --seed 0 --reasoning-effort low   # day 1
+python kgqa/src/evaluate.py --model openai/gpt-oss-120b --seed 1 --reasoning-effort low   # day 2
+python kgqa/src/evaluate.py --aggregate
+```
+
+Tokens are recorded per question from the provider's usage field
+(`mean_tokens`, `total_tokens`), so cost per answered question is reported
+next to accuracy.
+
+Gemma (open weights) on the Gemini API free tier also works through
+`OPENAI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/`. It is
+served without a system role; the client then prepends the instructions to the
+user turn, identically for both topologies.
 
 `gpt-oss-120b` and `gpt-oss-20b` are open-weight models, so results can be
 reproduced on self-hosted infrastructure; running both also gives a model-size

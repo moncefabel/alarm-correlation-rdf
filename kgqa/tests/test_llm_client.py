@@ -34,9 +34,11 @@ def _completion(content: str) -> bytes:
 
 
 class FakeProvider:
-    def __init__(self, rate_limit_first: int = 0, reject_seed: bool = False):
+    def __init__(self, rate_limit_first: int = 0, reject_seed: bool = False,
+                 reject_system: bool = False):
         self.rate_limit_first = rate_limit_first
         self.reject_seed = reject_seed
+        self.reject_system = reject_system
         self.bodies: list[dict] = []
 
     def handler(self):
@@ -49,6 +51,11 @@ class FakeProvider:
                 if len(provider.bodies) <= provider.rate_limit_first:
                     self._send(429, json.dumps({"error": {"message": "rate limited"}}).encode(),
                                {"retry-after-ms": "10"})
+                elif provider.reject_system and any(
+                        m["role"] == "system" for m in body["messages"]):
+                    self._send(400, json.dumps({"error": {
+                        "message": "Developer instruction is not enabled for models/gemma",
+                        "type": "invalid_request_error"}}).encode())
                 elif provider.reject_seed and "seed" in body:
                     self._send(400, json.dumps({"error": {
                         "message": "seed is not supported",
@@ -108,3 +115,50 @@ def test_sends_model_temperature_and_reasoning_effort(serve):
     assert body["temperature"] == 0
     assert body["reasoning_effort"] == "low"
     assert [m["role"] for m in body["messages"]] == ["system", "user"]
+
+
+def test_counts_tokens_from_provider_usage(serve):
+    serve(FakeProvider())
+    llm = make_llm("openai/gpt-oss-120b")
+    llm("sys", "user")
+    llm("sys", "user")
+    assert llm.usage == {"prompt": 2, "completion": 2, "total": 4}
+
+
+def test_runs_spread_over_several_days_are_aggregated(serve, tmp_path, monkeypatch):
+    """A 200k tokens/day quota fits about one pass a day: --seed runs one pass,
+    and summary.json always covers every run file present in --out."""
+    import json as _json
+
+    import evaluate
+    serve(FakeProvider())
+    base = ["evaluate.py", "--questions", str(ROOT / "kgqa/benchmark/questions.yaml"),
+            "--ontology", str(ROOT / "ontology/alarm_ontology.ttl"),
+            "--ids", "F01,S01", "--out", str(tmp_path)]
+    for seed in ("0", "1"):                      # day 1, then day 2
+        monkeypatch.setattr(sys, "argv", base + ["--seed", seed])
+        evaluate.main()
+    names = sorted(p.name for p in tmp_path.glob("*_run*.json"))
+    assert names == ["orchestrator_run0.json", "orchestrator_run1.json",
+                     "react_run0.json", "react_run1.json"]
+    summary = _json.loads((tmp_path / "summary.json").read_text())
+    assert [s["runs"] for s in summary] == [2, 2]
+    assert all(s["mean_tokens"] > 0 for s in summary)
+
+    (tmp_path / "summary.json").unlink()        # rebuild without calling a model
+    monkeypatch.setattr(sys, "argv", base + ["--aggregate"])
+    evaluate.main()
+    assert _json.loads((tmp_path / "summary.json").read_text()) == summary
+
+
+def test_model_without_system_role_gets_instructions_in_user_turn(serve):
+    """Gemma on the Gemini API rejects the system role. The client merges the
+    instructions into the user turn once, then keeps doing so for the run."""
+    p = serve(FakeProvider(reject_system=True, reject_seed=True))
+    llm = make_llm("gemma", seed=0)
+    assert llm("Rules here.", "Question: x").startswith("SELECT")
+    assert llm("Rules here.", "Question: y").startswith("SELECT")
+    last = p.bodies[-1]
+    assert [m["role"] for m in last["messages"]] == ["user"]
+    assert last["messages"][0]["content"].startswith("Rules here.\n\nQuestion: y")
+    assert "seed" not in last
