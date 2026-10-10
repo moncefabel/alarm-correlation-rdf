@@ -16,7 +16,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "kgqa" / "src"))
 
-from evaluate import canonical, label_index, prf  # noqa: E402
+from evaluate import canonical, label_index, prf, score  # noqa: E402
 from graph_store import GraphStore  # noqa: E402
 
 ONTOLOGY = str(ROOT / "ontology" / "alarm_ontology.ttl")
@@ -121,3 +121,89 @@ def test_interrupted_run_resumes_without_repeating_questions(env, tmp_path):
     assert [r["id"] for r in res["rows"]] == ["F01", "F02", "C04", "S01"]
     assert res["summary"]["execution_accuracy"] == 1.0
     assert res["summary"]["refusal_accuracy"] == 1.0
+
+
+
+# ------------------------------------------- pilot run (gpt-oss-120b, Groq)
+# Queries below are verbatim from the first full pass. Each test pins how the
+# revised scorer reads them, in both directions: correct answers that were
+# penalised by form, and wrong answers that must stay wrong.
+
+def lenient(env, qid, query):
+    store, labels = env
+    pred, gold = store.select(P + query), store.select(GOLD[qid]["gold_sparql"])
+    assert pred.ok, pred.error
+    return score(pred.rows, gold.rows, labels)
+
+
+def test_extra_time_column_no_longer_penalised(env):
+    q = """SELECT ?alarm ?time WHERE { ?alarm a net:Alarm ; net:triggeredAt ?time . }
+           ORDER BY ASC(?time) LIMIT 1"""
+    p, r, f, strict = lenient(env, "F06", q)
+    assert f == 1.0 and not strict          # lenient credits it, strict does not
+
+
+def test_extra_count_column_no_longer_penalised(env):
+    q = """SELECT ?device (COUNT(?alarm) AS ?alarmCount) WHERE {
+             ?alarm a net:Alarm ; net:affectsDevice ?device . }
+           GROUP BY ?device ORDER BY DESC(?alarmCount) LIMIT 1"""
+    assert lenient(env, "F05", q)[2] == 1.0
+
+
+def test_empty_select_answers_a_yes_no_question_with_no(env):
+    # K01 (react): lists cause/effect pairs, finds none: "no" is the right answer
+    q = """SELECT ?cause ?effect WHERE {
+             { net:Alarm_Latency net:causallyLinkedTo net:Alarm_PacketDrop
+               BIND(net:Alarm_Latency AS ?cause) BIND(net:Alarm_PacketDrop AS ?effect) }
+             UNION
+             { net:Alarm_PacketDrop net:causallyLinkedTo net:Alarm_Latency
+               BIND(net:Alarm_PacketDrop AS ?cause) BIND(net:Alarm_Latency AS ?effect) } }"""
+    assert lenient(env, "K01", q)[2] == 1.0
+
+
+def test_count_answers_a_yes_no_question(env):
+    # C06 (react): counts paths instead of ASK; 1 path means yes
+    q = "SELECT (COUNT(*) AS ?n) WHERE { net:Alarm_CPU net:causallyLinkedTo+ net:Alarm_WebTimeout . }"
+    assert lenient(env, "C06", q)[2] == 1.0
+    # and a zero count means no, it is not read as "something was returned"
+    q0 = "SELECT (COUNT(*) AS ?n) WHERE { net:Alarm_Latency net:causallyLinkedTo+ net:Alarm_WebTimeout . }"
+    assert lenient(env, "C06", q0)[2] == 0.0
+
+
+def test_yes_no_literal_is_read_as_boolean(env):
+    # C07 (react) answered with IF(EXISTS {...}, "yes", "no"). rdflib cannot
+    # execute EXISTS with a property path inside IF (Fuseki can), so the value
+    # is produced directly here; the point is how "no" is read.
+    q = 'SELECT ?causes WHERE { VALUES ?causes { "no" } }'
+    assert lenient(env, "C07", q)[2] == 1.0
+    q = 'SELECT ?causes WHERE { VALUES ?causes { "yes" } }'
+    assert lenient(env, "C07", q)[2] == 0.0
+
+
+def test_revised_x06_has_natural_polarity(env):
+    q = "ASK { net:Alarm_Latency net:causallyLinkedTo+ net:Alarm_WebTimeout . }"
+    assert lenient(env, "X06", q)[2] == 1.0
+
+
+def test_wrong_answers_stay_wrong(env):
+    # C04: direct links only, the chain is incomplete
+    q = """SELECT ?alarm ?label WHERE { net:Alarm_FirewallSpike net:causallyLinkedTo ?alarm .
+                                        ?alarm rdfs:label ?label . }"""
+    assert 0.0 < lenient(env, "C04", q)[2] < 1.0
+    # F02: wrong spelling of the severity, the count is 0, not 1
+    q = 'SELECT (COUNT(?a) AS ?n) WHERE { ?a a net:Alarm ; net:hasSeverity "critical" . }'
+    assert lenient(env, "F02", q)[2] == 0.0
+    # a yes/no question answered with the wrong boolean
+    assert lenient(env, "C06", "ASK { net:Alarm_Latency net:causallyLinkedTo+ net:Alarm_WebTimeout }")[2] == 0.0
+
+
+def test_dumping_the_graph_is_not_rewarded(env):
+    q = "SELECT ?s ?p ?o WHERE { ?s ?p ?o }"
+    assert lenient(env, "F01", q)[2] < 0.1
+
+
+def test_severity_values_are_in_the_model_context():
+    from schema_context import SchemaIndex
+    ctx = SchemaIndex(ONTOLOGY).relevant("How many alarms have critical severity?")
+    line = next(l for l in ctx.splitlines() if "hasSeverity" in l)
+    assert '"CRITICAL"' in line and '"HIGH"' in line

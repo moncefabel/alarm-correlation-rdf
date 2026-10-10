@@ -14,6 +14,12 @@ Three kinds of items are indexed:
     net:Firewall_Edge. Without this the model has to guess entity IRIs, which is
     the main source of hallucination this project measures.
 
+Properties whose values are a small set of strings (severity levels, alarm
+types) also show those values. Without them a model asked for "critical"
+alarms has to guess the spelling ("critical", "Critical", "CRITICAL") and an
+exact-match filter on the wrong one returns nothing. This is value linking, the
+literal counterpart of entity linking.
+
 Retrieval is lexical and deterministic so the ablation
 "full context vs retrieved context" stays clean. Swapping in embeddings is
 itself an ablation, not a default.
@@ -24,7 +30,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from rdflib import OWL, RDF, RDFS, XSD, Graph, URIRef
+from rdflib import OWL, RDF, RDFS, XSD, Graph, Literal, URIRef
 
 # Standard vocabularies a query may legitimately use without them being part of
 # the domain ontology.
@@ -42,6 +48,7 @@ class SchemaItem:
     domain: str = ""
     range_: str = ""
     type_: str = ""    # rdf:type of an instance
+    values: tuple[str, ...] = ()   # small closed set of literal values
 
     def render(self) -> str:
         bits = [f"{self.kind}: <{self.uri}>"]
@@ -51,13 +58,16 @@ class SchemaItem:
             bits.append(f"type=<{self.type_}>")
         if self.domain or self.range_:
             bits.append(f"domain={self.domain or '?'} range={self.range_ or '?'}")
+        if self.values:
+            bits.append("values=" + " | ".join(f'"{v}"' for v in self.values))
         if self.comment:
             bits.append(f"# {self.comment}")
         return "  ".join(bits)
 
     def bag(self) -> set[str]:
         local = self.uri.split("#")[-1].split("/")[-1]
-        text = " ".join([_decamel(local).replace("_", " "), self.label, self.comment])
+        text = " ".join([_decamel(local).replace("_", " "), self.label, self.comment,
+                         " ".join(self.values)])
         return set(_TOKEN.findall(text.lower()))
 
 
@@ -73,6 +83,9 @@ class SchemaIndex:
         self.items: list[SchemaItem] = []
         self.prefixes = {p: str(n) for p, n in g.namespaces() if p}
         self._build()
+        for it in self.items:
+            if it.kind == "property":
+                it.values = self._values(it.uri)
         self._known = self._all_iris()
 
     def _lit(self, subj, pred) -> str:
@@ -115,6 +128,20 @@ class SchemaIndex:
                     self.items.append(SchemaItem(str(inst), "instance",
                                                  self._lit(inst, RDFS.label), "",
                                                  type_=str(cls)))
+
+    MAX_VALUES = 8
+
+    def _values(self, prop: str) -> tuple[str, ...]:
+        """Distinct plain string values of a property, when they form a small
+        closed set. Dates, numbers and free text are left out."""
+        vals = set()
+        for o in self.g.objects(predicate=URIRef(prop)):
+            if not isinstance(o, Literal) or o.datatype not in (None, XSD.string):
+                return ()
+            vals.add(str(o))
+            if len(vals) > self.MAX_VALUES:
+                return ()
+        return tuple(sorted(vals)) if all(len(v) <= 40 for v in vals) else ()
 
     def _all_iris(self) -> set[str]:
         out: set[str] = set()

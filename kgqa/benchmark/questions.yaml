@@ -285,11 +285,15 @@ questions:
 
   - id: X06
     type: counterfactual
-    question: "Would the web timeout still happen if the latency spike had been prevented?"
-    expected: ["true"]
+    # Revised after the pilot run: the earlier wording ("would the timeout
+    # still happen") had inverted polarity, so a query asking the natural
+    # question "does the latency cause the timeout?" got the opposite boolean
+    # while reasoning correctly. The question now asks it directly.
+    question: "If the latency spike had been prevented, would the web timeout have been avoided?"
+    expected: ["false"]
     gold_sparql: |
       PREFIX net: <http://example.org/network#>
-      ASK { FILTER NOT EXISTS { net:Alarm_Latency net:causallyLinkedTo+ net:Alarm_WebTimeout . } }
+      ASK { net:Alarm_Latency net:causallyLinkedTo+ net:Alarm_WebTimeout . }
 
   # -------------------------------------------------------- out of scope
   - id: S01

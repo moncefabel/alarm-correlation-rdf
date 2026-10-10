@@ -164,7 +164,53 @@ def canonical(rows: list[dict], labels: dict[str, str]) -> set[str]:
     IRI, its rdfs:label, or both. Without this, a correct answer given as labels
     scores zero, and projecting ?alarm and ?label together halves precision.
     Applied identically to both topologies and to the gold answers."""
-    return {labels.get(v.lower(), v) for v in answer_set(rows)}
+    return {_canon(v, labels) for v in answer_set(rows)}
+
+
+_BOOL = {"true": "true", "yes": "true", "false": "false", "no": "false"}
+
+
+def _canon(v: str, labels: dict[str, str]) -> str:
+    v = v.strip()
+    return _BOOL.get(v.lower()) or labels.get(v.lower(), v)
+
+
+def score(pred_rows: list[dict], gold_rows: list[dict],
+          labels: dict[str, str]) -> tuple[float, float, float, bool]:
+    """Precision, recall and F1 of a predicted answer, plus strict exactness.
+
+    Lenient F1, written down before any topology result is compared:
+      - entity answers: the best-matching projected column is scored, so a
+        correct ?alarm column is not penalised by an extra ?time or ?count
+        column next to it (the union of all columns is also tried);
+      - yes/no answers (gold is ASK): the prediction is read as a boolean,
+        from an ASK, a yes/no or true/false value, or, for a SELECT, whether
+        it returns anything.
+    strict is the classic execution match: the union of every projected value
+    equals the gold answer set. Both are reported; the same rule applies to
+    both topologies.
+    """
+    gold = canonical(gold_rows, labels)
+    union = canonical(pred_rows, labels)
+    strict = union == gold
+    if len(gold_rows) == 1 and set(gold_rows[0]) == {"ask"}:
+        pred = "true" if pred_rows else "false"          # SELECT: anything found?
+        if len(pred_rows) == 1 and len(pred_rows[0]) == 1:
+            only = _canon(str(next(iter(pred_rows[0].values()))), labels)
+            if only in ("true", "false"):                # ASK, yes/no, true/false
+                pred = only
+            else:
+                try:                                     # COUNT(...): 0 means no
+                    pred = "true" if float(only) != 0 else "false"
+                except ValueError:
+                    pass
+        ok = 1.0 if {pred} == gold else 0.0
+        return ok, ok, ok, strict
+    columns = {k for row in pred_rows for k in row}
+    candidates = [union] + [canonical([{c: row[c]} for row in pred_rows if c in row], labels)
+                            for c in columns]
+    best = max((prf(c, gold) for c in candidates), key=lambda t: t[2])
+    return (*best, strict)
 
 
 def evaluate(topology: str, questions: list[dict], schema: SchemaIndex,
@@ -201,14 +247,16 @@ def evaluate(topology: str, questions: list[dict], schema: SchemaIndex,
             # Correct behaviour is to refuse. An executed query that happens to
             # return nothing is not a refusal and is not credited as one.
             p = r = f = 1.0 if tr.refused else 0.0
+            strict = tr.refused
         elif tr.refused:
             p = r = f = 0.0                     # refused an answerable question
+            strict = False
         else:
             gold = store.select(q["gold_sparql"])
-            p, r, f = prf(canonical(tr.rows, labels), canonical(gold.rows, labels))
+            p, r, f, strict = score(tr.rows, gold.rows, labels)
         rows.append({
             "id": q["id"], "type": qtype, "refused": tr.refused,
-            "valid": tr.ok, "exact": f == 1.0, "f1": f, "precision": p, "recall": r,
+            "valid": tr.ok, "exact": f == 1.0, "strict_exact": bool(strict), "f1": f, "precision": p, "recall": r,
             "repairs": tr.repairs, "llm_calls": tr.llm_calls, "seconds": tr.seconds,
             "hallucinated": len(tr.hallucinated_uris),
             "provenance_triples": len(tr.provenance),
@@ -223,11 +271,12 @@ def evaluate(topology: str, questions: list[dict], schema: SchemaIndex,
               f"repairs={tr.repairs} calls={tr.llm_calls} tokens={tokens}")
 
     def mean(k):
-        return round(stats.mean([r[k] for r in rows]), 4) if rows else 0.0
+        return round(stats.mean([r.get(k, 0) for r in rows]), 4) if rows else 0.0
 
     summary = {
         "topology": topology, "flags": flags, "n": len(rows),
-        "execution_accuracy": mean("exact"),        # strict: answer set identical
+        "execution_accuracy": mean("exact"),        # best column / boolean read
+        "strict_execution_accuracy": mean("strict_exact"),  # every projected value
         "answer_f1": mean("f1"),
         "query_validity_rate": mean("valid"),       # executed without error
         "hallucinated_uri_rate": round(

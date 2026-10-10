@@ -61,9 +61,16 @@ answer, since a broken gold query would score every prediction zero silently.
 
 ## Metrics
 
-- `execution_accuracy`: answer set identical to the gold answer set
-- `answer_f1`: set-level F1 over entities: an IRI and its `rdfs:label` count
-  once, so projecting labels, or IRI and label together, is not penalised
+- `execution_accuracy`: the answer is correct. For entity answers, the
+  best-matching projected column must equal the gold set, so an extra `?time`
+  or `?count` column next to a correct `?alarm` column is not penalised. For
+  yes/no questions (gold is ASK) the prediction is read as a boolean: an ASK,
+  a yes/no or true/false value, a count (0 means no), or whether a SELECT
+  returns anything.
+- `strict_execution_accuracy`: classic execution match, the union of every
+  projected value equals the gold set. Reported next to the lenient metric.
+- `answer_f1`: set-level F1 on the same best-matching column. An IRI and its
+  `rdfs:label` count once.
 - `query_validity_rate`: executed without error (refusals count as valid)
 - `hallucinated_uri_rate`: share of questions whose final query references an
   IRI absent from the graph
@@ -72,6 +79,24 @@ answer, since a broken gold query would score every prediction zero silently.
 - `refusal_accuracy` on out-of-scope questions, `false_refusal_rate` on the rest
 - every metric reported as mean and standard deviation over `--runs`
 
+### Pilot run and benchmark revision
+
+A first full pass (gpt-oss-120b, one run) was used as a pilot and is not
+reported. Inspecting every failed question showed three defects shared by both
+topologies, which were fixed before the reported runs:
+
+1. Value linking: the context did not show literal values, so "critical
+   severity" was queried as `"critical"` while the data says `"CRITICAL"`.
+   Properties with a small closed set of string values now list them.
+2. Form over content: correct answers with an extra projected column, and
+   yes/no questions answered with a SELECT or a count, were scored zero. The
+   lenient metric above fixes this; the strict one is kept alongside.
+3. X06 had inverted polarity ("would the timeout still happen"); it now asks
+   "would the timeout have been avoided".
+
+The scoring rules are fixed in `tests/test_scoring.py`, which replays the pilot
+queries verbatim, including wrong answers that must stay wrong.
+
 ## Run
 
 From the repository root:
@@ -79,7 +104,7 @@ From the repository root:
 ```bash
 pip install -r kgqa/requirements.txt
 
-# offline tests: no API key, no network (102 tests)
+# offline tests: no API key, no network (111 tests)
 pytest kgqa/tests -q
 
 # benchmark against any OpenAI-compatible endpoint (OpenAI, Groq, Mistral, vLLM, Ollama)
@@ -147,7 +172,10 @@ python kgqa/src/evaluate.py --topology both
 Validated against Apache Jena Fuseki (stain/jena-fuseki): the dataset loads
 102 triples and all 32 gold queries return the expected answers.
 
-Without `SPARQL_ENDPOINT` the graph is held in memory by rdflib.
+Without `SPARQL_ENDPOINT` the graph is held in memory by rdflib. rdflib
+rejects some valid SPARQL that Fuseki runs (for instance `IF(EXISTS { ... })`
+with a property path), which would count a correct query as invalid. Reported
+runs therefore use Fuseki.
 `tests/test_endpoint_mode.py` checks the endpoint path over HTTP against a
 local server implementing the SPARQL 1.1 Protocol: all 32 gold queries return
 the same answers as the in-memory graph.
