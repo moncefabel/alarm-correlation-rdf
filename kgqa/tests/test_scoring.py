@@ -77,3 +77,47 @@ def test_ambiguous_labels_are_not_mapped(env):
 def test_literals_such_as_counts_are_untouched(env):
     q = 'SELECT (COUNT(?a) AS ?n) WHERE { ?a net:hasSeverity "CRITICAL" . }'
     assert f1(env, "F02", q) == 1.0
+
+
+def test_interrupted_run_resumes_without_repeating_questions(env, tmp_path):
+    """A provider outage or an exhausted daily quota stops a pass halfway.
+    Scored questions are checkpointed, and the rerun asks the model only for
+    the remaining ones, with the same final scores as an uninterrupted run."""
+    from agents import REFUSAL, register_schema
+    from evaluate import evaluate
+    from schema_context import SchemaIndex
+
+    store, _ = env
+    schema = SchemaIndex(ONTOLOGY)
+    register_schema(schema)
+    qs = [GOLD[i] for i in ("F01", "F02", "C04", "S01")]
+    by_text = {q["question"]: q for q in qs}
+
+    def oracle(system, user):
+        q = next(v for k, v in by_text.items() if k in user)
+        return REFUSAL if q["type"] == "out_of_scope" else q["gold_sparql"]
+
+    calls = []
+
+    def flaky(system, user):
+        calls.append(user)
+        if len(calls) > 2:
+            raise RuntimeError("provider down")
+        return oracle(system, user)
+
+    ckpt = tmp_path / "react_run0.partial.jsonl"
+    with pytest.raises(RuntimeError):
+        evaluate("react", qs, schema, store, flaky, checkpoint=ckpt)
+    assert len(ckpt.read_text().splitlines()) == 2
+
+    asked = []
+
+    def counting(system, user):
+        asked.append(user)
+        return oracle(system, user)
+
+    res = evaluate("react", qs, schema, store, counting, checkpoint=ckpt)
+    assert len(asked) == 2                               # only C04 and S01
+    assert [r["id"] for r in res["rows"]] == ["F01", "F02", "C04", "S01"]
+    assert res["summary"]["execution_accuracy"] == 1.0
+    assert res["summary"]["refusal_accuracy"] == 1.0

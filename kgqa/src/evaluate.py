@@ -168,13 +168,31 @@ def canonical(rows: list[dict], labels: dict[str, str]) -> set[str]:
 
 
 def evaluate(topology: str, questions: list[dict], schema: SchemaIndex,
-             store: GraphStore, llm, **flags) -> dict:
+             store: GraphStore, llm, checkpoint: Path | None = None, **flags) -> dict:
+    """Score one topology on the questions.
+
+    With a checkpoint file, each question is appended as soon as it is scored
+    and questions already in the file are skipped. A run interrupted by a
+    provider outage or an exhausted daily quota resumes where it stopped
+    instead of starting over."""
     agent = (build_react(llm, schema, store, **flags) if topology == "react"
              else build_orchestrator(llm, schema, store, **flags))
     rows, traces = [], []
+    done: dict[str, dict] = {}
+    if checkpoint is not None and checkpoint.exists():
+        for line in checkpoint.read_text().splitlines():
+            if line.strip():
+                rec = json.loads(line)
+                done[rec["row"]["id"]] = rec
+        if done:
+            print(f"  [resume] {len(done)} question(s) already scored in {checkpoint.name}")
     labels = label_index(store)
     usage = getattr(llm, "usage", None)
     for q in questions:
+        if q["id"] in done:
+            rows.append(done[q["id"]]["row"])
+            traces.append(done[q["id"]]["trace"])
+            continue
         before = usage["total"] if usage else 0
         tr = run(agent, q["question"], topology, store)
         tokens = (usage["total"] - before) if usage else 0
@@ -197,6 +215,10 @@ def evaluate(topology: str, questions: list[dict], schema: SchemaIndex,
             "tokens": tokens,
         })
         traces.append(tr.__dict__)
+        if checkpoint is not None:
+            with checkpoint.open("a") as fh:
+                fh.write(json.dumps({"row": rows[-1], "trace": tr.__dict__},
+                                    default=str) + "\n")
         print(f"  [{topology}] {q['id']:<8} F1={f:.2f} valid={tr.ok} "
               f"repairs={tr.repairs} calls={tr.llm_calls} tokens={tokens}")
 
@@ -313,10 +335,17 @@ def main() -> None:
             print(f"\n=== {t} | run {seed} ===")
             llm = make_llm(args.model, seed=seed if len(seeds) > 1 or args.seed is not None else None,
                            reasoning_effort=args.reasoning_effort, timeout=args.timeout)
-            res = evaluate(t, questions, schema, store, llm, **flags)
-            per_run.append(res["summary"])
             tag = f"{t}{suffix}_run{seed}"
+            partial = Path(args.out, f"{tag}.partial.jsonl")
+            try:
+                res = evaluate(t, questions, schema, store, llm, checkpoint=partial, **flags)
+            except BaseException:            # includes Ctrl+C
+                print(f"\nInterrupted. Progress is saved in {partial}; rerun the same "
+                      "command to resume from the next question.")
+                raise
+            per_run.append(res["summary"])
             Path(args.out, f"{tag}.json").write_text(json.dumps(res, indent=2, default=str))
+            partial.unlink(missing_ok=True)
         final.append(aggregate(per_run))
 
     if args.seed is not None:

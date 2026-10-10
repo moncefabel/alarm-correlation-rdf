@@ -79,7 +79,7 @@ From the repository root:
 ```bash
 pip install -r kgqa/requirements.txt
 
-# offline tests: no API key, no network (101 tests)
+# offline tests: no API key, no network (102 tests)
 pytest kgqa/tests -q
 
 # benchmark against any OpenAI-compatible endpoint (OpenAI, Groq, Mistral, vLLM, Ollama)
@@ -114,6 +114,11 @@ python kgqa/src/evaluate.py --model openai/gpt-oss-120b --seed 0 --reasoning-eff
 python kgqa/src/evaluate.py --model openai/gpt-oss-120b --seed 1 --reasoning-effort low   # day 2
 python kgqa/src/evaluate.py --aggregate
 ```
+
+Every scored question is checkpointed in `<topology>_run<seed>.partial.jsonl`.
+If a run stops (provider outage, exhausted daily quota, Ctrl+C), rerunning the
+same command resumes from the next question; the file is removed once the
+topology completes.
 
 Tokens are recorded per question from the provider's usage field
 (`mean_tokens`, `total_tokens`), so cost per answered question is reported
