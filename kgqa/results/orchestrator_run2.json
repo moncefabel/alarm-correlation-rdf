@@ -1,0 +1,2803 @@
+{
+  "summary": {
+    "topology": "orchestrator",
+    "flags": {
+      "retrieve_schema": true
+    },
+    "n": 32,
+    "execution_accuracy": 0.875,
+    "strict_execution_accuracy": 0.6562,
+    "answer_f1": 0.9208,
+    "query_validity_rate": 1,
+    "hallucinated_uri_rate": 0.0,
+    "mean_repairs": 0,
+    "mean_tokens": 1579.2188,
+    "total_tokens": 50535,
+    "mean_llm_calls": 1.9062,
+    "mean_seconds": 9.8281,
+    "f1_by_type": {
+      "factual": 1.0,
+      "causal": 0.75,
+      "contrast": 1.0,
+      "counterfactual": 0.9111,
+      "out_of_scope": 1.0
+    },
+    "refusal_accuracy": 1.0,
+    "false_refusal_rate": 0.0
+  },
+  "rows": [
+    {
+      "id": "F01",
+      "type": "factual",
+      "refused": false,
+      "valid": true,
+      "exact": true,
+      "strict_exact": true,
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 13.02,
+      "hallucinated": 0,
+      "provenance_triples": 8,
+      "tokens": 1753
+    },
+    {
+      "id": "F02",
+      "type": "factual",
+      "refused": false,
+      "valid": true,
+      "exact": true,
+      "strict_exact": true,
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 11.07,
+      "hallucinated": 0,
+      "provenance_triples": 0,
+      "tokens": 1536
+    },
+    {
+      "id": "F03",
+      "type": "factual",
+      "refused": false,
+      "valid": true,
+      "exact": true,
+      "strict_exact": true,
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 8.15,
+      "hallucinated": 0,
+      "provenance_triples": 29,
+      "tokens": 1726
+    },
+    {
+      "id": "F04",
+      "type": "factual",
+      "refused": false,
+      "valid": true,
+      "exact": true,
+      "strict_exact": true,
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 8.9,
+      "hallucinated": 0,
+      "provenance_triples": 0,
+      "tokens": 1696
+    },
+    {
+      "id": "F05",
+      "type": "factual",
+      "refused": false,
+      "valid": true,
+      "exact": true,
+      "strict_exact": false,
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 12.5,
+      "hallucinated": 0,
+      "provenance_triples": 6,
+      "tokens": 1547
+    },
+    {
+      "id": "F06",
+      "type": "factual",
+      "refused": false,
+      "valid": true,
+      "exact": true,
+      "strict_exact": false,
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 9.27,
+      "hallucinated": 0,
+      "provenance_triples": 8,
+      "tokens": 1710
+    },
+    {
+      "id": "F07",
+      "type": "factual",
+      "refused": false,
+      "valid": true,
+      "exact": true,
+      "strict_exact": true,
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 12.59,
+      "hallucinated": 0,
+      "provenance_triples": 0,
+      "tokens": 1664
+    },
+    {
+      "id": "F08",
+      "type": "factual",
+      "refused": false,
+      "valid": true,
+      "exact": true,
+      "strict_exact": true,
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 11.13,
+      "hallucinated": 0,
+      "provenance_triples": 0,
+      "tokens": 1596
+    },
+    {
+      "id": "F09",
+      "type": "factual",
+      "refused": false,
+      "valid": true,
+      "exact": true,
+      "strict_exact": true,
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 10.86,
+      "hallucinated": 0,
+      "provenance_triples": 0,
+      "tokens": 1618
+    },
+    {
+      "id": "F10",
+      "type": "factual",
+      "refused": false,
+      "valid": true,
+      "exact": true,
+      "strict_exact": true,
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 12.86,
+      "hallucinated": 0,
+      "provenance_triples": 27,
+      "tokens": 1522
+    },
+    {
+      "id": "F11",
+      "type": "factual",
+      "refused": false,
+      "valid": true,
+      "exact": true,
+      "strict_exact": false,
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 12.9,
+      "hallucinated": 0,
+      "provenance_triples": 27,
+      "tokens": 1797
+    },
+    {
+      "id": "C01",
+      "type": "causal",
+      "refused": false,
+      "valid": true,
+      "exact": true,
+      "strict_exact": true,
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 11.48,
+      "hallucinated": 0,
+      "provenance_triples": 8,
+      "tokens": 1757
+    },
+    {
+      "id": "C02",
+      "type": "causal",
+      "refused": false,
+      "valid": true,
+      "exact": false,
+      "strict_exact": false,
+      "f1": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 14.79,
+      "hallucinated": 0,
+      "provenance_triples": 0,
+      "tokens": 1899
+    },
+    {
+      "id": "C03",
+      "type": "causal",
+      "refused": false,
+      "valid": true,
+      "exact": false,
+      "strict_exact": false,
+      "f1": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 9.7,
+      "hallucinated": 0,
+      "provenance_triples": 0,
+      "tokens": 1677
+    },
+    {
+      "id": "C04",
+      "type": "causal",
+      "refused": false,
+      "valid": true,
+      "exact": true,
+      "strict_exact": true,
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 12.94,
+      "hallucinated": 0,
+      "provenance_triples": 37,
+      "tokens": 1698
+    },
+    {
+      "id": "C05",
+      "type": "causal",
+      "refused": false,
+      "valid": true,
+      "exact": true,
+      "strict_exact": true,
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 10.29,
+      "hallucinated": 0,
+      "provenance_triples": 20,
+      "tokens": 1913
+    },
+    {
+      "id": "C06",
+      "type": "causal",
+      "refused": false,
+      "valid": true,
+      "exact": true,
+      "strict_exact": true,
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 8.62,
+      "hallucinated": 0,
+      "provenance_triples": 0,
+      "tokens": 1675
+    },
+    {
+      "id": "C07",
+      "type": "causal",
+      "refused": false,
+      "valid": true,
+      "exact": true,
+      "strict_exact": true,
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 8.1,
+      "hallucinated": 0,
+      "provenance_triples": 0,
+      "tokens": 1760
+    },
+    {
+      "id": "C08",
+      "type": "causal",
+      "refused": false,
+      "valid": true,
+      "exact": true,
+      "strict_exact": false,
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 9.12,
+      "hallucinated": 0,
+      "provenance_triples": 12,
+      "tokens": 1746
+    },
+    {
+      "id": "K01",
+      "type": "contrast",
+      "refused": false,
+      "valid": true,
+      "exact": true,
+      "strict_exact": false,
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 9.71,
+      "hallucinated": 0,
+      "provenance_triples": 0,
+      "tokens": 1848
+    },
+    {
+      "id": "K02",
+      "type": "contrast",
+      "refused": false,
+      "valid": true,
+      "exact": true,
+      "strict_exact": true,
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 14.91,
+      "hallucinated": 0,
+      "provenance_triples": 9,
+      "tokens": 1848
+    },
+    {
+      "id": "K03",
+      "type": "contrast",
+      "refused": false,
+      "valid": true,
+      "exact": true,
+      "strict_exact": true,
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 9.11,
+      "hallucinated": 0,
+      "provenance_triples": 4,
+      "tokens": 2001
+    },
+    {
+      "id": "X01",
+      "type": "counterfactual",
+      "refused": false,
+      "valid": true,
+      "exact": true,
+      "strict_exact": true,
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 14.66,
+      "hallucinated": 0,
+      "provenance_triples": 37,
+      "tokens": 1834
+    },
+    {
+      "id": "X02",
+      "type": "counterfactual",
+      "refused": false,
+      "valid": true,
+      "exact": true,
+      "strict_exact": false,
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 10.49,
+      "hallucinated": 0,
+      "provenance_triples": 8,
+      "tokens": 1803
+    },
+    {
+      "id": "X03",
+      "type": "counterfactual",
+      "refused": false,
+      "valid": true,
+      "exact": false,
+      "strict_exact": false,
+      "f1": 0.8,
+      "precision": 1.0,
+      "recall": 0.6666666666666666,
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 8.09,
+      "hallucinated": 0,
+      "provenance_triples": 19,
+      "tokens": 1695
+    },
+    {
+      "id": "X04",
+      "type": "counterfactual",
+      "refused": false,
+      "valid": true,
+      "exact": true,
+      "strict_exact": true,
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 9.34,
+      "hallucinated": 0,
+      "provenance_triples": 0,
+      "tokens": 1648
+    },
+    {
+      "id": "X05",
+      "type": "counterfactual",
+      "refused": false,
+      "valid": true,
+      "exact": false,
+      "strict_exact": false,
+      "f1": 0.6666666666666666,
+      "precision": 0.5,
+      "recall": 1.0,
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 8.27,
+      "hallucinated": 0,
+      "provenance_triples": 18,
+      "tokens": 1809
+    },
+    {
+      "id": "X06",
+      "type": "counterfactual",
+      "refused": false,
+      "valid": true,
+      "exact": true,
+      "strict_exact": false,
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 10.22,
+      "hallucinated": 0,
+      "provenance_triples": 0,
+      "tokens": 1840
+    },
+    {
+      "id": "S01",
+      "type": "out_of_scope",
+      "refused": true,
+      "valid": true,
+      "exact": true,
+      "strict_exact": true,
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "repairs": 0,
+      "llm_calls": 1,
+      "seconds": 0.28,
+      "hallucinated": 0,
+      "provenance_triples": 0,
+      "tokens": 141
+    },
+    {
+      "id": "S02",
+      "type": "out_of_scope",
+      "refused": true,
+      "valid": true,
+      "exact": true,
+      "strict_exact": true,
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "repairs": 0,
+      "llm_calls": 1,
+      "seconds": 0.24,
+      "hallucinated": 0,
+      "provenance_triples": 0,
+      "tokens": 144
+    },
+    {
+      "id": "S03",
+      "type": "out_of_scope",
+      "refused": true,
+      "valid": true,
+      "exact": true,
+      "strict_exact": true,
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "repairs": 0,
+      "llm_calls": 1,
+      "seconds": 0.32,
+      "hallucinated": 0,
+      "provenance_triples": 0,
+      "tokens": 153
+    },
+    {
+      "id": "S04",
+      "type": "out_of_scope",
+      "refused": true,
+      "valid": true,
+      "exact": true,
+      "strict_exact": true,
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 10.57,
+      "hallucinated": 0,
+      "provenance_triples": 0,
+      "tokens": 1481
+    }
+  ],
+  "traces": [
+    {
+      "topology": "orchestrator",
+      "question": "Which alarms were raised on the firewall FW1?",
+      "query": "PREFIX net: <http://example.org/network#>\nSELECT ?alarm ?label WHERE {\n  ?alarm a net:Alarm ;\n         net:affectsDevice net:Firewall_Edge ;\n         rdfs:label ?label .\n}",
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 13.02,
+      "ok": true,
+      "refused": false,
+      "error": null,
+      "rows": [
+        {
+          "alarm": "http://example.org/network#Alarm_FirewallSpike",
+          "label": "Inbound traffic spike on FW1"
+        }
+      ],
+      "hallucinated_uris": [],
+      "provenance": [
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "http://example.org/network#Alarm"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://www.w3.org/2000/01/rdf-schema#label",
+          "Inbound traffic spike on FW1"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#affectsDevice",
+          "http://example.org/network#Firewall_Edge"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#triggeredAt",
+          "2026-06-02T13:59:45"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#hasSeverity",
+          "HIGH"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#alarmType",
+          "TRAFFIC_SPIKE"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_CPU"
+        ],
+        [
+          "http://example.org/network#Incident_DDoS",
+          "http://example.org/network#composedOf",
+          "http://example.org/network#Alarm_FirewallSpike"
+        ]
+      ],
+      "steps": [
+        "classify",
+        "link",
+        "generate",
+        "verify",
+        "execute"
+      ]
+    },
+    {
+      "topology": "orchestrator",
+      "question": "How many alarms have critical severity?",
+      "query": "PREFIX net: <http://example.org/network#>\nSELECT (COUNT(?alarm) AS ?criticalAlarmCount)\nWHERE {\n  ?alarm a net:Alarm ;\n         net:hasSeverity \"CRITICAL\" .\n}",
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 11.07,
+      "ok": true,
+      "refused": false,
+      "error": null,
+      "rows": [
+        {
+          "criticalAlarmCount": "1"
+        }
+      ],
+      "hallucinated_uris": [],
+      "provenance": [],
+      "steps": [
+        "classify",
+        "link",
+        "generate",
+        "verify",
+        "execute"
+      ]
+    },
+    {
+      "topology": "orchestrator",
+      "question": "Which alarms affect the core router R1?",
+      "query": "PREFIX net: <http://example.org/network#>\nSELECT ?alarm ?label WHERE {\n  ?alarm a net:Alarm ;\n         net:affectsDevice net:Router_Core ;\n         rdfs:label ?label .\n}",
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 8.15,
+      "ok": true,
+      "refused": false,
+      "error": null,
+      "rows": [
+        {
+          "alarm": "http://example.org/network#Alarm_CPU",
+          "label": "CPU spike on R1"
+        },
+        {
+          "alarm": "http://example.org/network#Alarm_Latency",
+          "label": "Latency spike on R1"
+        },
+        {
+          "alarm": "http://example.org/network#Alarm_PacketDrop",
+          "label": "Packet drop on R1"
+        }
+      ],
+      "hallucinated_uris": [],
+      "provenance": [
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "http://example.org/network#Alarm"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://www.w3.org/2000/01/rdf-schema#label",
+          "CPU spike on R1"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#affectsDevice",
+          "http://example.org/network#Router_Core"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#triggeredAt",
+          "2026-06-02T14:00:00"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#hasSeverity",
+          "HIGH"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#alarmType",
+          "CPU_OVERLOAD"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_Latency"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_PacketDrop"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_CPU"
+        ],
+        [
+          "http://example.org/network#Incident_DDoS",
+          "http://example.org/network#composedOf",
+          "http://example.org/network#Alarm_CPU"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "http://example.org/network#Alarm"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://www.w3.org/2000/01/rdf-schema#label",
+          "Latency spike on R1"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#affectsDevice",
+          "http://example.org/network#Router_Core"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#triggeredAt",
+          "2026-06-02T14:01:30"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#hasSeverity",
+          "HIGH"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#alarmType",
+          "HIGH_LATENCY"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#correlatedWith",
+          "http://example.org/network#Alarm_PacketDrop"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_Latency"
+        ],
+        [
+          "http://example.org/network#Incident_DDoS",
+          "http://example.org/network#composedOf",
+          "http://example.org/network#Alarm_Latency"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "http://example.org/network#Alarm"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://www.w3.org/2000/01/rdf-schema#label",
+          "Packet drop on R1"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://example.org/network#affectsDevice",
+          "http://example.org/network#Router_Core"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://example.org/network#triggeredAt",
+          "2026-06-02T14:02:00"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://example.org/network#hasSeverity",
+          "CRITICAL"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://example.org/network#alarmType",
+          "PACKET_LOSS"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_WebTimeout"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_PacketDrop"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#correlatedWith",
+          "http://example.org/network#Alarm_PacketDrop"
+        ],
+        [
+          "http://example.org/network#Incident_DDoS",
+          "http://example.org/network#composedOf",
+          "http://example.org/network#Alarm_PacketDrop"
+        ]
+      ],
+      "steps": [
+        "classify",
+        "link",
+        "generate",
+        "verify",
+        "execute"
+      ]
+    },
+    {
+      "topology": "orchestrator",
+      "question": "What is the severity of the packet drop alarm?",
+      "query": "PREFIX net: <http://example.org/network#>\nSELECT ?severity WHERE {\n  net:Alarm_PacketDrop net:hasSeverity ?severity .\n}",
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 8.9,
+      "ok": true,
+      "refused": false,
+      "error": null,
+      "rows": [
+        {
+          "severity": "CRITICAL"
+        }
+      ],
+      "hallucinated_uris": [],
+      "provenance": [],
+      "steps": [
+        "classify",
+        "link",
+        "generate",
+        "verify",
+        "execute"
+      ]
+    },
+    {
+      "topology": "orchestrator",
+      "question": "Which device concentrates the most alarms?",
+      "query": "PREFIX net: <http://example.org/network#>\nSELECT ?device (COUNT(?alarm) AS ?alarmCount)\nWHERE {\n  ?alarm a net:Alarm ;\n         net:affectsDevice ?device .\n}\nGROUP BY ?device\nORDER BY DESC(?alarmCount)\nLIMIT 1",
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 12.5,
+      "ok": true,
+      "refused": false,
+      "error": null,
+      "rows": [
+        {
+          "device": "http://example.org/network#Router_Core",
+          "alarmCount": "3"
+        }
+      ],
+      "hallucinated_uris": [],
+      "provenance": [
+        [
+          "http://example.org/network#Router_Core",
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "http://example.org/network#NetworkDevice"
+        ],
+        [
+          "http://example.org/network#Router_Core",
+          "http://www.w3.org/2000/01/rdf-schema#label",
+          "Core Router R1"
+        ],
+        [
+          "http://example.org/network#Router_Core",
+          "http://example.org/network#deviceType",
+          "router"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#affectsDevice",
+          "http://example.org/network#Router_Core"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#affectsDevice",
+          "http://example.org/network#Router_Core"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://example.org/network#affectsDevice",
+          "http://example.org/network#Router_Core"
+        ]
+      ],
+      "steps": [
+        "classify",
+        "link",
+        "generate",
+        "verify",
+        "execute"
+      ]
+    },
+    {
+      "topology": "orchestrator",
+      "question": "Which alarm was triggered first?",
+      "query": "PREFIX net: <http://example.org/network#>\nSELECT ?alarm ?time\nWHERE {\n  ?alarm a net:Alarm ;\n         net:triggeredAt ?time .\n}\nORDER BY ?time\nLIMIT 1",
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 9.27,
+      "ok": true,
+      "refused": false,
+      "error": null,
+      "rows": [
+        {
+          "alarm": "http://example.org/network#Alarm_FirewallSpike",
+          "time": "2026-06-02T13:59:45"
+        }
+      ],
+      "hallucinated_uris": [],
+      "provenance": [
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "http://example.org/network#Alarm"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://www.w3.org/2000/01/rdf-schema#label",
+          "Inbound traffic spike on FW1"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#affectsDevice",
+          "http://example.org/network#Firewall_Edge"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#triggeredAt",
+          "2026-06-02T13:59:45"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#hasSeverity",
+          "HIGH"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#alarmType",
+          "TRAFFIC_SPIKE"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_CPU"
+        ],
+        [
+          "http://example.org/network#Incident_DDoS",
+          "http://example.org/network#composedOf",
+          "http://example.org/network#Alarm_FirewallSpike"
+        ]
+      ],
+      "steps": [
+        "classify",
+        "link",
+        "generate",
+        "verify",
+        "execute"
+      ]
+    },
+    {
+      "topology": "orchestrator",
+      "question": "Which MITRE ATT&CK technique is the DDoS incident classified as?",
+      "query": "PREFIX net: <http://example.org/network#>\nSELECT ?mitreId WHERE {\n  net:Incident_DDoS net:classifiedAs ?ap .\n  ?ap net:mitreId ?mitreId .\n}",
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 12.59,
+      "ok": true,
+      "refused": false,
+      "error": null,
+      "rows": [
+        {
+          "mitreId": "T1498"
+        }
+      ],
+      "hallucinated_uris": [],
+      "provenance": [],
+      "steps": [
+        "classify",
+        "link",
+        "generate",
+        "verify",
+        "execute"
+      ]
+    },
+    {
+      "topology": "orchestrator",
+      "question": "What type of device is the web server WS1?",
+      "query": "PREFIX net: <http://example.org/network#>\n\nSELECT ?deviceType\nWHERE {\n  net:Server_Web net:deviceType ?deviceType .\n}",
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 11.13,
+      "ok": true,
+      "refused": false,
+      "error": null,
+      "rows": [
+        {
+          "deviceType": "server"
+        }
+      ],
+      "hallucinated_uris": [],
+      "provenance": [],
+      "steps": [
+        "classify",
+        "link",
+        "generate",
+        "verify",
+        "execute"
+      ]
+    },
+    {
+      "topology": "orchestrator",
+      "question": "How many alarms compose the DDoS incident?",
+      "query": "PREFIX net: <http://example.org/network#>\nSELECT (COUNT(?alarm) AS ?alarmCount)\nWHERE {\n  net:Incident_DDoS net:composedOf ?alarm .\n}",
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 10.86,
+      "ok": true,
+      "refused": false,
+      "error": null,
+      "rows": [
+        {
+          "alarmCount": "5"
+        }
+      ],
+      "hallucinated_uris": [],
+      "provenance": [],
+      "steps": [
+        "classify",
+        "link",
+        "generate",
+        "verify",
+        "execute"
+      ]
+    },
+    {
+      "topology": "orchestrator",
+      "question": "Which alarms have high severity?",
+      "query": "PREFIX net: <http://example.org/network#>\nSELECT ?alarm\nWHERE {\n  ?alarm a net:Alarm ;\n         net:hasSeverity \"HIGH\" .\n}",
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 12.86,
+      "ok": true,
+      "refused": false,
+      "error": null,
+      "rows": [
+        {
+          "alarm": "http://example.org/network#Alarm_CPU"
+        },
+        {
+          "alarm": "http://example.org/network#Alarm_Latency"
+        },
+        {
+          "alarm": "http://example.org/network#Alarm_FirewallSpike"
+        }
+      ],
+      "hallucinated_uris": [],
+      "provenance": [
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "http://example.org/network#Alarm"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://www.w3.org/2000/01/rdf-schema#label",
+          "CPU spike on R1"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#affectsDevice",
+          "http://example.org/network#Router_Core"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#triggeredAt",
+          "2026-06-02T14:00:00"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#hasSeverity",
+          "HIGH"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#alarmType",
+          "CPU_OVERLOAD"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_Latency"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_PacketDrop"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_CPU"
+        ],
+        [
+          "http://example.org/network#Incident_DDoS",
+          "http://example.org/network#composedOf",
+          "http://example.org/network#Alarm_CPU"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "http://example.org/network#Alarm"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://www.w3.org/2000/01/rdf-schema#label",
+          "Latency spike on R1"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#affectsDevice",
+          "http://example.org/network#Router_Core"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#triggeredAt",
+          "2026-06-02T14:01:30"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#hasSeverity",
+          "HIGH"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#alarmType",
+          "HIGH_LATENCY"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#correlatedWith",
+          "http://example.org/network#Alarm_PacketDrop"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_Latency"
+        ],
+        [
+          "http://example.org/network#Incident_DDoS",
+          "http://example.org/network#composedOf",
+          "http://example.org/network#Alarm_Latency"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "http://example.org/network#Alarm"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://www.w3.org/2000/01/rdf-schema#label",
+          "Inbound traffic spike on FW1"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#affectsDevice",
+          "http://example.org/network#Firewall_Edge"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#triggeredAt",
+          "2026-06-02T13:59:45"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#hasSeverity",
+          "HIGH"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#alarmType",
+          "TRAFFIC_SPIKE"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_CPU"
+        ],
+        [
+          "http://example.org/network#Incident_DDoS",
+          "http://example.org/network#composedOf",
+          "http://example.org/network#Alarm_FirewallSpike"
+        ]
+      ],
+      "steps": [
+        "classify",
+        "link",
+        "generate",
+        "verify",
+        "execute"
+      ]
+    },
+    {
+      "topology": "orchestrator",
+      "question": "Which alarms were triggered after 14:01 on 2 June 2026?",
+      "query": "PREFIX net: <http://example.org/network#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n\nSELECT ?alarm ?time\nWHERE {\n  ?alarm a net:Alarm ;\n         net:triggeredAt ?time .\n  FILTER ( ?time > \"2026-06-02T14:01:00\"^^xsd:dateTime )\n}",
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 12.9,
+      "ok": true,
+      "refused": false,
+      "error": null,
+      "rows": [
+        {
+          "alarm": "http://example.org/network#Alarm_Latency",
+          "time": "2026-06-02T14:01:30"
+        },
+        {
+          "alarm": "http://example.org/network#Alarm_PacketDrop",
+          "time": "2026-06-02T14:02:00"
+        },
+        {
+          "alarm": "http://example.org/network#Alarm_WebTimeout",
+          "time": "2026-06-02T14:03:00"
+        }
+      ],
+      "hallucinated_uris": [],
+      "provenance": [
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "http://example.org/network#Alarm"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://www.w3.org/2000/01/rdf-schema#label",
+          "Latency spike on R1"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#affectsDevice",
+          "http://example.org/network#Router_Core"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#triggeredAt",
+          "2026-06-02T14:01:30"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#hasSeverity",
+          "HIGH"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#alarmType",
+          "HIGH_LATENCY"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#correlatedWith",
+          "http://example.org/network#Alarm_PacketDrop"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_Latency"
+        ],
+        [
+          "http://example.org/network#Incident_DDoS",
+          "http://example.org/network#composedOf",
+          "http://example.org/network#Alarm_Latency"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "http://example.org/network#Alarm"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://www.w3.org/2000/01/rdf-schema#label",
+          "Packet drop on R1"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://example.org/network#affectsDevice",
+          "http://example.org/network#Router_Core"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://example.org/network#triggeredAt",
+          "2026-06-02T14:02:00"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://example.org/network#hasSeverity",
+          "CRITICAL"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://example.org/network#alarmType",
+          "PACKET_LOSS"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_WebTimeout"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_PacketDrop"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#correlatedWith",
+          "http://example.org/network#Alarm_PacketDrop"
+        ],
+        [
+          "http://example.org/network#Incident_DDoS",
+          "http://example.org/network#composedOf",
+          "http://example.org/network#Alarm_PacketDrop"
+        ],
+        [
+          "http://example.org/network#Alarm_WebTimeout",
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "http://example.org/network#Alarm"
+        ],
+        [
+          "http://example.org/network#Alarm_WebTimeout",
+          "http://www.w3.org/2000/01/rdf-schema#label",
+          "Request timeout on WS1"
+        ],
+        [
+          "http://example.org/network#Alarm_WebTimeout",
+          "http://example.org/network#affectsDevice",
+          "http://example.org/network#Server_Web"
+        ],
+        [
+          "http://example.org/network#Alarm_WebTimeout",
+          "http://example.org/network#triggeredAt",
+          "2026-06-02T14:03:00"
+        ],
+        [
+          "http://example.org/network#Alarm_WebTimeout",
+          "http://example.org/network#hasSeverity",
+          "MEDIUM"
+        ],
+        [
+          "http://example.org/network#Alarm_WebTimeout",
+          "http://example.org/network#alarmType",
+          "SERVICE_TIMEOUT"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_WebTimeout"
+        ],
+        [
+          "http://example.org/network#Incident_DDoS",
+          "http://example.org/network#composedOf",
+          "http://example.org/network#Alarm_WebTimeout"
+        ]
+      ],
+      "steps": [
+        "classify",
+        "link",
+        "generate",
+        "verify",
+        "execute"
+      ]
+    },
+    {
+      "topology": "orchestrator",
+      "question": "What is the root cause of the incident?",
+      "query": "PREFIX net: <http://example.org/network#>\n\nSELECT DISTINCT ?rootAlarm\nWHERE {\n  net:Incident_DDoS net:composedOf ?alarm .\n  ?alarm (net:causallyLinkedTo)* ?rootAlarm .\n  FILTER NOT EXISTS { ?cause net:causallyLinkedTo ?rootAlarm . }\n  ?rootAlarm a net:Alarm .\n}",
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 11.48,
+      "ok": true,
+      "refused": false,
+      "error": null,
+      "rows": [
+        {
+          "rootAlarm": "http://example.org/network#Alarm_FirewallSpike"
+        }
+      ],
+      "hallucinated_uris": [],
+      "provenance": [
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "http://example.org/network#Alarm"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://www.w3.org/2000/01/rdf-schema#label",
+          "Inbound traffic spike on FW1"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#affectsDevice",
+          "http://example.org/network#Firewall_Edge"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#triggeredAt",
+          "2026-06-02T13:59:45"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#hasSeverity",
+          "HIGH"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#alarmType",
+          "TRAFFIC_SPIKE"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_CPU"
+        ],
+        [
+          "http://example.org/network#Incident_DDoS",
+          "http://example.org/network#composedOf",
+          "http://example.org/network#Alarm_FirewallSpike"
+        ]
+      ],
+      "steps": [
+        "classify",
+        "link",
+        "generate",
+        "verify",
+        "execute"
+      ]
+    },
+    {
+      "topology": "orchestrator",
+      "question": "What is the root cause of the request timeout on the web server?",
+      "query": "PREFIX net: <http://example.org/network#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n\nSELECT ?rootAlarm ?rootLabel WHERE {\n  net:Alarm_WebTimeout net:causallyLinkedTo+ ?rootAlarm .\n  OPTIONAL { ?rootAlarm rdfs:label ?rootLabel . }\n  FILTER NOT EXISTS { ?intermediate net:causallyLinkedTo ?rootAlarm }\n}",
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 14.79,
+      "ok": true,
+      "refused": false,
+      "error": null,
+      "rows": [],
+      "hallucinated_uris": [],
+      "provenance": [],
+      "steps": [
+        "classify",
+        "link",
+        "generate",
+        "verify",
+        "execute"
+      ]
+    },
+    {
+      "topology": "orchestrator",
+      "question": "What directly caused the latency spike?",
+      "query": "PREFIX net: <http://example.org/network#>\nSELECT ?causeAlarm ?causeType WHERE {\n  net:Alarm_Latency net:causallyLinkedTo ?causeAlarm .\n  ?causeAlarm net:alarmType ?causeType .\n}",
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 9.7,
+      "ok": true,
+      "refused": false,
+      "error": null,
+      "rows": [],
+      "hallucinated_uris": [],
+      "provenance": [],
+      "steps": [
+        "classify",
+        "link",
+        "generate",
+        "verify",
+        "execute"
+      ]
+    },
+    {
+      "topology": "orchestrator",
+      "question": "Which alarms are downstream consequences of the inbound traffic spike?",
+      "query": "PREFIX net: <http://example.org/network#>\nSELECT ?downstreamAlarm ?label WHERE {\n  net:Alarm_FirewallSpike net:causallyLinkedTo+ ?downstreamAlarm .\n  ?downstreamAlarm rdfs:label ?label .\n}",
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 12.94,
+      "ok": true,
+      "refused": false,
+      "error": null,
+      "rows": [
+        {
+          "downstreamAlarm": "http://example.org/network#Alarm_CPU",
+          "label": "CPU spike on R1"
+        },
+        {
+          "downstreamAlarm": "http://example.org/network#Alarm_Latency",
+          "label": "Latency spike on R1"
+        },
+        {
+          "downstreamAlarm": "http://example.org/network#Alarm_PacketDrop",
+          "label": "Packet drop on R1"
+        },
+        {
+          "downstreamAlarm": "http://example.org/network#Alarm_WebTimeout",
+          "label": "Request timeout on WS1"
+        }
+      ],
+      "hallucinated_uris": [],
+      "provenance": [
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "http://example.org/network#Alarm"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://www.w3.org/2000/01/rdf-schema#label",
+          "CPU spike on R1"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#affectsDevice",
+          "http://example.org/network#Router_Core"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#triggeredAt",
+          "2026-06-02T14:00:00"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#hasSeverity",
+          "HIGH"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#alarmType",
+          "CPU_OVERLOAD"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_Latency"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_PacketDrop"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_CPU"
+        ],
+        [
+          "http://example.org/network#Incident_DDoS",
+          "http://example.org/network#composedOf",
+          "http://example.org/network#Alarm_CPU"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "http://example.org/network#Alarm"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://www.w3.org/2000/01/rdf-schema#label",
+          "Latency spike on R1"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#affectsDevice",
+          "http://example.org/network#Router_Core"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#triggeredAt",
+          "2026-06-02T14:01:30"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#hasSeverity",
+          "HIGH"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#alarmType",
+          "HIGH_LATENCY"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#correlatedWith",
+          "http://example.org/network#Alarm_PacketDrop"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_Latency"
+        ],
+        [
+          "http://example.org/network#Incident_DDoS",
+          "http://example.org/network#composedOf",
+          "http://example.org/network#Alarm_Latency"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "http://example.org/network#Alarm"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://www.w3.org/2000/01/rdf-schema#label",
+          "Packet drop on R1"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://example.org/network#affectsDevice",
+          "http://example.org/network#Router_Core"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://example.org/network#triggeredAt",
+          "2026-06-02T14:02:00"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://example.org/network#hasSeverity",
+          "CRITICAL"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://example.org/network#alarmType",
+          "PACKET_LOSS"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_WebTimeout"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_PacketDrop"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#correlatedWith",
+          "http://example.org/network#Alarm_PacketDrop"
+        ],
+        [
+          "http://example.org/network#Incident_DDoS",
+          "http://example.org/network#composedOf",
+          "http://example.org/network#Alarm_PacketDrop"
+        ],
+        [
+          "http://example.org/network#Alarm_WebTimeout",
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "http://example.org/network#Alarm"
+        ],
+        [
+          "http://example.org/network#Alarm_WebTimeout",
+          "http://www.w3.org/2000/01/rdf-schema#label",
+          "Request timeout on WS1"
+        ],
+        [
+          "http://example.org/network#Alarm_WebTimeout",
+          "http://example.org/network#affectsDevice",
+          "http://example.org/network#Server_Web"
+        ],
+        [
+          "http://example.org/network#Alarm_WebTimeout",
+          "http://example.org/network#triggeredAt",
+          "2026-06-02T14:03:00"
+        ],
+        [
+          "http://example.org/network#Alarm_WebTimeout",
+          "http://example.org/network#hasSeverity",
+          "MEDIUM"
+        ],
+        [
+          "http://example.org/network#Alarm_WebTimeout",
+          "http://example.org/network#alarmType",
+          "SERVICE_TIMEOUT"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_WebTimeout"
+        ],
+        [
+          "http://example.org/network#Incident_DDoS",
+          "http://example.org/network#composedOf",
+          "http://example.org/network#Alarm_WebTimeout"
+        ]
+      ],
+      "steps": [
+        "classify",
+        "link",
+        "generate",
+        "verify",
+        "execute"
+      ]
+    },
+    {
+      "topology": "orchestrator",
+      "question": "Which alarms lie on the causal chain between the traffic spike and the web timeout?",
+      "query": "PREFIX net: <http://example.org/network#>\n\nSELECT ?intermediateAlarm ?intermediateLabel WHERE {\n  net:Alarm_FirewallSpike net:causallyLinkedTo+ ?intermediateAlarm .\n  ?intermediateAlarm net:causallyLinkedTo+ net:Alarm_WebTimeout .\n  FILTER(?intermediateAlarm != net:Alarm_FirewallSpike && ?intermediateAlarm != net:Alarm_WebTimeout)\n  ?intermediateAlarm rdfs:label ?intermediateLabel .\n}",
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 10.29,
+      "ok": true,
+      "refused": false,
+      "error": null,
+      "rows": [
+        {
+          "intermediateAlarm": "http://example.org/network#Alarm_CPU",
+          "intermediateLabel": "CPU spike on R1"
+        },
+        {
+          "intermediateAlarm": "http://example.org/network#Alarm_PacketDrop",
+          "intermediateLabel": "Packet drop on R1"
+        }
+      ],
+      "hallucinated_uris": [],
+      "provenance": [
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "http://example.org/network#Alarm"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://www.w3.org/2000/01/rdf-schema#label",
+          "CPU spike on R1"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#affectsDevice",
+          "http://example.org/network#Router_Core"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#triggeredAt",
+          "2026-06-02T14:00:00"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#hasSeverity",
+          "HIGH"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#alarmType",
+          "CPU_OVERLOAD"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_Latency"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_PacketDrop"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_CPU"
+        ],
+        [
+          "http://example.org/network#Incident_DDoS",
+          "http://example.org/network#composedOf",
+          "http://example.org/network#Alarm_CPU"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "http://example.org/network#Alarm"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://www.w3.org/2000/01/rdf-schema#label",
+          "Packet drop on R1"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://example.org/network#affectsDevice",
+          "http://example.org/network#Router_Core"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://example.org/network#triggeredAt",
+          "2026-06-02T14:02:00"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://example.org/network#hasSeverity",
+          "CRITICAL"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://example.org/network#alarmType",
+          "PACKET_LOSS"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_WebTimeout"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_PacketDrop"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#correlatedWith",
+          "http://example.org/network#Alarm_PacketDrop"
+        ],
+        [
+          "http://example.org/network#Incident_DDoS",
+          "http://example.org/network#composedOf",
+          "http://example.org/network#Alarm_PacketDrop"
+        ]
+      ],
+      "steps": [
+        "classify",
+        "link",
+        "generate",
+        "verify",
+        "execute"
+      ]
+    },
+    {
+      "topology": "orchestrator",
+      "question": "Does the CPU overload cause the web timeout, directly or indirectly?",
+      "query": "PREFIX net: <http://example.org/network#>\nSELECT (EXISTS {\n  net:Alarm_CPU net:causallyLinkedTo+ net:Alarm_WebTimeout .\n} AS ?cpuCausesWebTimeout) WHERE {}",
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 8.62,
+      "ok": true,
+      "refused": false,
+      "error": null,
+      "rows": [
+        {
+          "cpuCausesWebTimeout": "true"
+        }
+      ],
+      "hallucinated_uris": [],
+      "provenance": [],
+      "steps": [
+        "classify",
+        "link",
+        "generate",
+        "verify",
+        "execute"
+      ]
+    },
+    {
+      "topology": "orchestrator",
+      "question": "Does the latency spike cause the web timeout, directly or indirectly?",
+      "query": "PREFIX net: <http://example.org/network#>\n\nASK {\n  <http://example.org/network#Alarm_Latency> net:causallyLinkedTo+ <http://example.org/network#Alarm_WebTimeout> .\n}",
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 8.1,
+      "ok": true,
+      "refused": false,
+      "error": null,
+      "rows": [
+        {
+          "ask": "false"
+        }
+      ],
+      "hallucinated_uris": [],
+      "provenance": [],
+      "steps": [
+        "classify",
+        "link",
+        "generate",
+        "verify",
+        "execute"
+      ]
+    },
+    {
+      "topology": "orchestrator",
+      "question": "On which device is the root cause alarm raised?",
+      "query": "PREFIX net: <http://example.org/network#>\nSELECT ?rootAlarm ?device\nWHERE {\n  ?rootAlarm a net:Alarm .\n  FILTER NOT EXISTS {\n    ?prev net:causallyLinkedTo ?rootAlarm .\n  }\n  ?rootAlarm net:affectsDevice ?device .\n}",
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 9.12,
+      "ok": true,
+      "refused": false,
+      "error": null,
+      "rows": [
+        {
+          "rootAlarm": "http://example.org/network#Alarm_FirewallSpike",
+          "device": "http://example.org/network#Firewall_Edge"
+        }
+      ],
+      "hallucinated_uris": [],
+      "provenance": [
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "http://example.org/network#Alarm"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://www.w3.org/2000/01/rdf-schema#label",
+          "Inbound traffic spike on FW1"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#affectsDevice",
+          "http://example.org/network#Firewall_Edge"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#triggeredAt",
+          "2026-06-02T13:59:45"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#hasSeverity",
+          "HIGH"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#alarmType",
+          "TRAFFIC_SPIKE"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_CPU"
+        ],
+        [
+          "http://example.org/network#Incident_DDoS",
+          "http://example.org/network#composedOf",
+          "http://example.org/network#Alarm_FirewallSpike"
+        ],
+        [
+          "http://example.org/network#Firewall_Edge",
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "http://example.org/network#NetworkDevice"
+        ],
+        [
+          "http://example.org/network#Firewall_Edge",
+          "http://www.w3.org/2000/01/rdf-schema#label",
+          "Edge Firewall FW1"
+        ],
+        [
+          "http://example.org/network#Firewall_Edge",
+          "http://example.org/network#deviceType",
+          "firewall"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#affectsDevice",
+          "http://example.org/network#Firewall_Edge"
+        ]
+      ],
+      "steps": [
+        "classify",
+        "link",
+        "generate",
+        "verify",
+        "execute"
+      ]
+    },
+    {
+      "topology": "orchestrator",
+      "question": "The latency spike and the packet drop occur together on R1. Is one a cause of the other?",
+      "query": "PREFIX net: <http://example.org/network#>\nSELECT ?direction WHERE {\n  {\n    net:Alarm_Latency net:causallyLinkedTo net:Alarm_PacketDrop .\n    BIND(\"Latency causes PacketDrop\" AS ?direction)\n  }\n  UNION\n  {\n    net:Alarm_PacketDrop net:causallyLinkedTo net:Alarm_Latency .\n    BIND(\"PacketDrop causes Latency\" AS ?direction)\n  }\n}",
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 9.71,
+      "ok": true,
+      "refused": false,
+      "error": null,
+      "rows": [],
+      "hallucinated_uris": [],
+      "provenance": [],
+      "steps": [
+        "classify",
+        "link",
+        "generate",
+        "verify",
+        "execute"
+      ]
+    },
+    {
+      "topology": "orchestrator",
+      "question": "Which alarm is correlated with the packet drop without being causally linked to it?",
+      "query": "PREFIX net: <http://example.org/network#>\n\nSELECT ?alarm\nWHERE {\n  ?alarm net:correlatedWith net:Alarm_PacketDrop .\n  FILTER NOT EXISTS { ?alarm net:causallyLinkedTo net:Alarm_PacketDrop }\n  FILTER NOT EXISTS { net:Alarm_PacketDrop net:causallyLinkedTo ?alarm }\n}",
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 14.91,
+      "ok": true,
+      "refused": false,
+      "error": null,
+      "rows": [
+        {
+          "alarm": "http://example.org/network#Alarm_Latency"
+        }
+      ],
+      "hallucinated_uris": [],
+      "provenance": [
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "http://example.org/network#Alarm"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://www.w3.org/2000/01/rdf-schema#label",
+          "Latency spike on R1"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#affectsDevice",
+          "http://example.org/network#Router_Core"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#triggeredAt",
+          "2026-06-02T14:01:30"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#hasSeverity",
+          "HIGH"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#alarmType",
+          "HIGH_LATENCY"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#correlatedWith",
+          "http://example.org/network#Alarm_PacketDrop"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_Latency"
+        ],
+        [
+          "http://example.org/network#Incident_DDoS",
+          "http://example.org/network#composedOf",
+          "http://example.org/network#Alarm_Latency"
+        ]
+      ],
+      "steps": [
+        "classify",
+        "link",
+        "generate",
+        "verify",
+        "execute"
+      ]
+    },
+    {
+      "topology": "orchestrator",
+      "question": "Router R1 raised the most alarms. On which device should we intervene to stop the whole incident?",
+      "query": "PREFIX net: <http://example.org/network#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n\nSELECT DISTINCT ?device ?deviceLabel WHERE {\n  # Alarms that are part of the DDoS incident\n  net:Incident_DDoS net:composedOf ?alarm .\n  \n  # Root cause alarms: no other alarm causes them\n  FILTER NOT EXISTS {\n    ?cause net:causallyLinkedTo ?alarm .\n  }\n  \n  # Device affected by the root alarm\n  ?alarm net:affectsDevice ?device .\n  OPTIONAL { ?device rdfs:label ?deviceLabel . }\n}",
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 9.11,
+      "ok": true,
+      "refused": false,
+      "error": null,
+      "rows": [
+        {
+          "device": "http://example.org/network#Firewall_Edge",
+          "deviceLabel": "Edge Firewall FW1"
+        }
+      ],
+      "hallucinated_uris": [],
+      "provenance": [
+        [
+          "http://example.org/network#Firewall_Edge",
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "http://example.org/network#NetworkDevice"
+        ],
+        [
+          "http://example.org/network#Firewall_Edge",
+          "http://www.w3.org/2000/01/rdf-schema#label",
+          "Edge Firewall FW1"
+        ],
+        [
+          "http://example.org/network#Firewall_Edge",
+          "http://example.org/network#deviceType",
+          "firewall"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#affectsDevice",
+          "http://example.org/network#Firewall_Edge"
+        ]
+      ],
+      "steps": [
+        "classify",
+        "link",
+        "generate",
+        "verify",
+        "execute"
+      ]
+    },
+    {
+      "topology": "orchestrator",
+      "question": "If the inbound traffic spike on FW1 had been blocked, which alarms would not have occurred?",
+      "query": "PREFIX net: <http://example.org/network#>\nSELECT ?downstreamAlarm ?label WHERE {\n  net:Alarm_FirewallSpike net:causallyLinkedTo+ ?downstreamAlarm .\n  ?downstreamAlarm rdfs:label ?label .\n}",
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 14.66,
+      "ok": true,
+      "refused": false,
+      "error": null,
+      "rows": [
+        {
+          "downstreamAlarm": "http://example.org/network#Alarm_CPU",
+          "label": "CPU spike on R1"
+        },
+        {
+          "downstreamAlarm": "http://example.org/network#Alarm_Latency",
+          "label": "Latency spike on R1"
+        },
+        {
+          "downstreamAlarm": "http://example.org/network#Alarm_PacketDrop",
+          "label": "Packet drop on R1"
+        },
+        {
+          "downstreamAlarm": "http://example.org/network#Alarm_WebTimeout",
+          "label": "Request timeout on WS1"
+        }
+      ],
+      "hallucinated_uris": [],
+      "provenance": [
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "http://example.org/network#Alarm"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://www.w3.org/2000/01/rdf-schema#label",
+          "CPU spike on R1"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#affectsDevice",
+          "http://example.org/network#Router_Core"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#triggeredAt",
+          "2026-06-02T14:00:00"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#hasSeverity",
+          "HIGH"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#alarmType",
+          "CPU_OVERLOAD"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_Latency"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_PacketDrop"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_CPU"
+        ],
+        [
+          "http://example.org/network#Incident_DDoS",
+          "http://example.org/network#composedOf",
+          "http://example.org/network#Alarm_CPU"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "http://example.org/network#Alarm"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://www.w3.org/2000/01/rdf-schema#label",
+          "Latency spike on R1"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#affectsDevice",
+          "http://example.org/network#Router_Core"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#triggeredAt",
+          "2026-06-02T14:01:30"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#hasSeverity",
+          "HIGH"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#alarmType",
+          "HIGH_LATENCY"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#correlatedWith",
+          "http://example.org/network#Alarm_PacketDrop"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_Latency"
+        ],
+        [
+          "http://example.org/network#Incident_DDoS",
+          "http://example.org/network#composedOf",
+          "http://example.org/network#Alarm_Latency"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "http://example.org/network#Alarm"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://www.w3.org/2000/01/rdf-schema#label",
+          "Packet drop on R1"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://example.org/network#affectsDevice",
+          "http://example.org/network#Router_Core"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://example.org/network#triggeredAt",
+          "2026-06-02T14:02:00"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://example.org/network#hasSeverity",
+          "CRITICAL"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://example.org/network#alarmType",
+          "PACKET_LOSS"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_WebTimeout"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_PacketDrop"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#correlatedWith",
+          "http://example.org/network#Alarm_PacketDrop"
+        ],
+        [
+          "http://example.org/network#Incident_DDoS",
+          "http://example.org/network#composedOf",
+          "http://example.org/network#Alarm_PacketDrop"
+        ],
+        [
+          "http://example.org/network#Alarm_WebTimeout",
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "http://example.org/network#Alarm"
+        ],
+        [
+          "http://example.org/network#Alarm_WebTimeout",
+          "http://www.w3.org/2000/01/rdf-schema#label",
+          "Request timeout on WS1"
+        ],
+        [
+          "http://example.org/network#Alarm_WebTimeout",
+          "http://example.org/network#affectsDevice",
+          "http://example.org/network#Server_Web"
+        ],
+        [
+          "http://example.org/network#Alarm_WebTimeout",
+          "http://example.org/network#triggeredAt",
+          "2026-06-02T14:03:00"
+        ],
+        [
+          "http://example.org/network#Alarm_WebTimeout",
+          "http://example.org/network#hasSeverity",
+          "MEDIUM"
+        ],
+        [
+          "http://example.org/network#Alarm_WebTimeout",
+          "http://example.org/network#alarmType",
+          "SERVICE_TIMEOUT"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_WebTimeout"
+        ],
+        [
+          "http://example.org/network#Incident_DDoS",
+          "http://example.org/network#composedOf",
+          "http://example.org/network#Alarm_WebTimeout"
+        ]
+      ],
+      "steps": [
+        "classify",
+        "link",
+        "generate",
+        "verify",
+        "execute"
+      ]
+    },
+    {
+      "topology": "orchestrator",
+      "question": "Which single alarm, if prevented, would avoid the largest number of other alarms?",
+      "query": "PREFIX net: <http://example.org/network#>\nSELECT ?alarm (COUNT(DISTINCT ?downstream) AS ?affectedCount) WHERE {\n  ?alarm a net:Alarm .\n  ?alarm net:causallyLinkedTo+ ?downstream .\n}\nGROUP BY ?alarm\nORDER BY DESC(?affectedCount)\nLIMIT 1",
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 10.49,
+      "ok": true,
+      "refused": false,
+      "error": null,
+      "rows": [
+        {
+          "alarm": "http://example.org/network#Alarm_FirewallSpike",
+          "affectedCount": "4"
+        }
+      ],
+      "hallucinated_uris": [],
+      "provenance": [
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "http://example.org/network#Alarm"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://www.w3.org/2000/01/rdf-schema#label",
+          "Inbound traffic spike on FW1"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#affectsDevice",
+          "http://example.org/network#Firewall_Edge"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#triggeredAt",
+          "2026-06-02T13:59:45"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#hasSeverity",
+          "HIGH"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#alarmType",
+          "TRAFFIC_SPIKE"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_CPU"
+        ],
+        [
+          "http://example.org/network#Incident_DDoS",
+          "http://example.org/network#composedOf",
+          "http://example.org/network#Alarm_FirewallSpike"
+        ]
+      ],
+      "steps": [
+        "classify",
+        "link",
+        "generate",
+        "verify",
+        "execute"
+      ]
+    },
+    {
+      "topology": "orchestrator",
+      "question": "If the CPU overload had been prevented, which alarms would have been avoided?",
+      "query": "PREFIX net: <http://example.org/network#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n\nSELECT ?downstreamAlarm ?label\nWHERE {\n  <http://example.org/network#Alarm_CPU> net:causallyLinkedTo ?downstreamAlarm .\n  OPTIONAL { ?downstreamAlarm rdfs:label ?label . }\n}",
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 8.09,
+      "ok": true,
+      "refused": false,
+      "error": null,
+      "rows": [
+        {
+          "downstreamAlarm": "http://example.org/network#Alarm_Latency",
+          "label": "Latency spike on R1"
+        },
+        {
+          "downstreamAlarm": "http://example.org/network#Alarm_PacketDrop",
+          "label": "Packet drop on R1"
+        }
+      ],
+      "hallucinated_uris": [],
+      "provenance": [
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "http://example.org/network#Alarm"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://www.w3.org/2000/01/rdf-schema#label",
+          "Latency spike on R1"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#affectsDevice",
+          "http://example.org/network#Router_Core"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#triggeredAt",
+          "2026-06-02T14:01:30"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#hasSeverity",
+          "HIGH"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#alarmType",
+          "HIGH_LATENCY"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#correlatedWith",
+          "http://example.org/network#Alarm_PacketDrop"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_Latency"
+        ],
+        [
+          "http://example.org/network#Incident_DDoS",
+          "http://example.org/network#composedOf",
+          "http://example.org/network#Alarm_Latency"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "http://example.org/network#Alarm"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://www.w3.org/2000/01/rdf-schema#label",
+          "Packet drop on R1"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://example.org/network#affectsDevice",
+          "http://example.org/network#Router_Core"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://example.org/network#triggeredAt",
+          "2026-06-02T14:02:00"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://example.org/network#hasSeverity",
+          "CRITICAL"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://example.org/network#alarmType",
+          "PACKET_LOSS"
+        ],
+        [
+          "http://example.org/network#Alarm_PacketDrop",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_WebTimeout"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_PacketDrop"
+        ],
+        [
+          "http://example.org/network#Alarm_Latency",
+          "http://example.org/network#correlatedWith",
+          "http://example.org/network#Alarm_PacketDrop"
+        ],
+        [
+          "http://example.org/network#Incident_DDoS",
+          "http://example.org/network#composedOf",
+          "http://example.org/network#Alarm_PacketDrop"
+        ]
+      ],
+      "steps": [
+        "classify",
+        "link",
+        "generate",
+        "verify",
+        "execute"
+      ]
+    },
+    {
+      "topology": "orchestrator",
+      "question": "How many alarms would stopping the packet drop prevent?",
+      "query": "PREFIX net: <http://example.org/network#>\nSELECT (COUNT(DISTINCT ?downstream) AS ?preventedAlarms) WHERE {\n  net:Alarm_PacketDrop net:causallyLinkedTo+ ?downstream .\n}",
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 9.34,
+      "ok": true,
+      "refused": false,
+      "error": null,
+      "rows": [
+        {
+          "preventedAlarms": "1"
+        }
+      ],
+      "hallucinated_uris": [],
+      "provenance": [],
+      "steps": [
+        "classify",
+        "link",
+        "generate",
+        "verify",
+        "execute"
+      ]
+    },
+    {
+      "topology": "orchestrator",
+      "question": "If the CPU overload were removed, which other alarms of the incident would still occur?",
+      "query": "PREFIX net: <http://example.org/network#>\n\nSELECT ?remainingAlarm ?remainingAlarmLabel WHERE {\n  # Get the incident\n  ?incident a net:Incident ;\n            net:composedOf ?alarm .\n  # Get label of each alarm\n  ?alarm rdfs:label ?remainingAlarmLabel .\n  BIND(?alarm AS ?remainingAlarm)\n  \n  # Identify the CPU overload alarm\n  BIND(net:Alarm_CPU AS ?cpuAlarm)\n  \n  # Exclude alarms that are downstream of the CPU alarm\n  FILTER NOT EXISTS {\n    ?cpuAlarm net:causallyLinkedTo+ ?alarm .\n  }\n}",
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 8.27,
+      "ok": true,
+      "refused": false,
+      "error": null,
+      "rows": [
+        {
+          "remainingAlarm": "http://example.org/network#Alarm_CPU",
+          "remainingAlarmLabel": "CPU spike on R1"
+        },
+        {
+          "remainingAlarm": "http://example.org/network#Alarm_FirewallSpike",
+          "remainingAlarmLabel": "Inbound traffic spike on FW1"
+        }
+      ],
+      "hallucinated_uris": [],
+      "provenance": [
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "http://example.org/network#Alarm"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://www.w3.org/2000/01/rdf-schema#label",
+          "CPU spike on R1"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#affectsDevice",
+          "http://example.org/network#Router_Core"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#triggeredAt",
+          "2026-06-02T14:00:00"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#hasSeverity",
+          "HIGH"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#alarmType",
+          "CPU_OVERLOAD"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_Latency"
+        ],
+        [
+          "http://example.org/network#Alarm_CPU",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_PacketDrop"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_CPU"
+        ],
+        [
+          "http://example.org/network#Incident_DDoS",
+          "http://example.org/network#composedOf",
+          "http://example.org/network#Alarm_CPU"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "http://example.org/network#Alarm"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://www.w3.org/2000/01/rdf-schema#label",
+          "Inbound traffic spike on FW1"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#affectsDevice",
+          "http://example.org/network#Firewall_Edge"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#triggeredAt",
+          "2026-06-02T13:59:45"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#hasSeverity",
+          "HIGH"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#alarmType",
+          "TRAFFIC_SPIKE"
+        ],
+        [
+          "http://example.org/network#Alarm_FirewallSpike",
+          "http://example.org/network#causallyLinkedTo",
+          "http://example.org/network#Alarm_CPU"
+        ],
+        [
+          "http://example.org/network#Incident_DDoS",
+          "http://example.org/network#composedOf",
+          "http://example.org/network#Alarm_FirewallSpike"
+        ]
+      ],
+      "steps": [
+        "classify",
+        "link",
+        "generate",
+        "verify",
+        "execute"
+      ]
+    },
+    {
+      "topology": "orchestrator",
+      "question": "If the latency spike had been prevented, would the web timeout have been avoided?",
+      "query": "PREFIX net: <http://example.org/network#>\n\nSELECT ?downstream\nWHERE {\n  net:Alarm_Latency (net:causallyLinkedTo)+ ?downstream .\n  FILTER(?downstream = net:Alarm_WebTimeout)\n}",
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 10.22,
+      "ok": true,
+      "refused": false,
+      "error": null,
+      "rows": [],
+      "hallucinated_uris": [],
+      "provenance": [],
+      "steps": [
+        "classify",
+        "link",
+        "generate",
+        "verify",
+        "execute"
+      ]
+    },
+    {
+      "topology": "orchestrator",
+      "question": "What is the capital of Slovenia?",
+      "query": "",
+      "repairs": 0,
+      "llm_calls": 1,
+      "seconds": 0.28,
+      "ok": true,
+      "refused": true,
+      "error": null,
+      "rows": [],
+      "hallucinated_uris": [],
+      "provenance": [],
+      "steps": [
+        "classify"
+      ]
+    },
+    {
+      "topology": "orchestrator",
+      "question": "What is the euro to dollar exchange rate today?",
+      "query": "",
+      "repairs": 0,
+      "llm_calls": 1,
+      "seconds": 0.24,
+      "ok": true,
+      "refused": true,
+      "error": null,
+      "rows": [],
+      "hallucinated_uris": [],
+      "provenance": [],
+      "steps": [
+        "classify"
+      ]
+    },
+    {
+      "topology": "orchestrator",
+      "question": "Write a short poem about routers.",
+      "query": "",
+      "repairs": 0,
+      "llm_calls": 1,
+      "seconds": 0.32,
+      "ok": true,
+      "refused": true,
+      "error": null,
+      "rows": [],
+      "hallucinated_uris": [],
+      "provenance": [],
+      "steps": [
+        "classify"
+      ]
+    },
+    {
+      "topology": "orchestrator",
+      "question": "Who won the 2022 football World Cup?",
+      "query": "OUT_OF_SCOPE",
+      "repairs": 0,
+      "llm_calls": 2,
+      "seconds": 10.57,
+      "ok": true,
+      "refused": true,
+      "error": null,
+      "rows": [],
+      "hallucinated_uris": [],
+      "provenance": [],
+      "steps": [
+        "classify",
+        "link",
+        "generate",
+        "verify"
+      ]
+    }
+  ]
+}

@@ -196,15 +196,59 @@ kgqa/
 └── docker-compose.yml
 ```
 
-## Status
+## Results
 
-The pipeline, the benchmark and the offline tests are complete. **No LLM
-results are reported yet**: the topology comparison is the next step, and the
-numbers will be added here when three runs per topology are done.
+gpt-oss-120b (Groq, `reasoning_effort=low`, temperature 0), Apache Jena Fuseki,
+benchmark v2, 3 runs per topology. Mean and standard deviation over runs.
 
-Known limits:
-- the graph is small (102 triples); the benchmark validates the method, not
-  scale
+| | ReAct | Orchestrator |
+|---|---|---|
+| Execution accuracy | 0.750 ± 0.031 | **0.885 ± 0.018** |
+| Strict execution accuracy | 0.479 ± 0.036 | **0.635 ± 0.036** |
+| Answer F1 | 0.819 ± 0.034 | **0.923 ± 0.028** |
+| Query validity | 1.00 | 1.00 |
+| Hallucinated-IRI rate | 0.00 | 0.00 |
+| Refusal accuracy / false refusals | 1.00 / 0.00 | 1.00 / 0.00 |
+| LLM calls per question | 1.01 | 1.92 |
+| Tokens per question | 1 546 | 1 601 (+3.6 %) |
+
+Execution accuracy by question type (mean over the 3 runs):
+
+| Bucket | n | ReAct | Orchestrator |
+|---|---|---|---|
+| factual | 11 | 1.00 | 1.00 |
+| causal | 8 | 0.71 | 0.79 |
+| contrast | 3 | 0.44 | 0.89 |
+| counterfactual | 6 | 0.33 | 0.72 |
+| out_of_scope | 4 | 1.00 | 1.00 |
+
+Raw per-question results: `results/react_run{0,1,2}.json`,
+`results/orchestrator_run{0,1,2}.json`; aggregate in `results/summary.json`.
+
+### Reading
+
+- The whole gap is on multi-hop questions. On factual lookups and
+  out-of-scope refusals the two topologies are identical.
+- Averaged over runs, the orchestrator scores higher on 8 questions, lower on
+  1 (C03) and the same on 23. An exact sign test on the 9 non-tied questions
+  gives p ≈ 0.04: consistent, but measured on 32 questions.
+- The typical ReAct failure is stopping at the first causal hop (C04, X01:
+  direct `causallyLinkedTo` where the chain needs `causallyLinkedTo+`).
+- The extra cost is small: the classification call is about 150 tokens, so the
+  orchestrator spends 3.6 % more tokens for almost twice the calls.
+- The symbolic gate never fired: no invented IRI in any run, for either
+  topology, once entities and literal values are in the context. The
+  advantage therefore does not come from verification but from the
+  classification stage and the type-specific instruction it adds. Separating
+  the two (ReAct given the same instruction) is the next experiment.
+- Latency is not reported: on the free tier, rate-limit waits dominate wall
+  time and fall unevenly on the two topologies.
+
+### Limits
+
+- one model; a second model family is needed before generalising
+- small graph (102 triples) and 32 questions: the benchmark validates the
+  method, not scale
+- the orchestrator fails C03 in every run while ReAct mostly succeeds; not
+  yet analysed
 - entity linking is lexical; embedding retrieval is planned as an ablation
-- strict execution accuracy penalises extra projected variables, which is why
-  answer F1 is reported next to it
