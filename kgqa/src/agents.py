@@ -143,10 +143,47 @@ class S(TypedDict, total=False):
 
 
 # --------------------------------------------------------------------------
+# Question typing, shared verbatim by every arm that uses it
+# --------------------------------------------------------------------------
+
+CLASSIFY_SYSTEM = ("Classify the question. Answer with exactly one word: "
+                   "factual, causal, counterfactual, or out_of_scope.")
+
+TYPE_HINTS = {
+    "causal": "This is a ROOT-CAUSE question. Traverse causal properties "
+              "transitively; do not rely on co-occurrence.",
+    "counterfactual": "This is a COUNTERFACTUAL question. Identify the "
+                      "downstream set that would not occur if the named "
+                      "node were removed or blocked.",
+}
+
+
+def classify_question(llm: LLM, question: str) -> str:
+    out = llm(CLASSIFY_SYSTEM,
+              f"Graph domain: network alarms, incidents, causal dependencies.\n"
+              f"Question: {question}").strip().lower()
+    return next((t for t in ("counterfactual", "causal", "out_of_scope", "factual")
+                 if t in out), "factual")
+
+
+# --------------------------------------------------------------------------
 # Topology A, ReAct: one loop, model decides when to stop
 # --------------------------------------------------------------------------
 
-def build_react(llm: LLM, schema: SchemaIndex, store: GraphStore, retrieve_schema: bool = True):
+def build_react(llm: LLM, schema: SchemaIndex, store: GraphStore,
+                retrieve_schema: bool = True, typed_hints: bool = False):
+    """typed_hints=True is an ablation arm: ReAct receives the orchestrator's
+    classification call and its type-specific instruction, nothing else. The
+    loop, the absence of a symbolic gate and the refusal path are unchanged
+    (the class only selects the instruction, it never routes), so any gain is
+    attributable to the instruction rather than to the orchestrated control
+    flow."""
+    def classify(s: S) -> S:
+        s["qtype"] = classify_question(llm, s["question"])
+        s["llm_calls"] = s.get("llm_calls", 0) + 1
+        s.setdefault("steps", []).append("classify")
+        return s
+
     def think_act(s: S) -> S:
         ctx = schema.relevant(s["question"]) if retrieve_schema else schema.full()
         failed = bool(s.get("result")) and not s["result"].ok
@@ -156,8 +193,10 @@ def build_react(llm: LLM, schema: SchemaIndex, store: GraphStore, retrieve_schem
             # State is written in nodes only: LangGraph discards writes made
             # inside a conditional-edge function.
             s["repairs"] = s.get("repairs", 0) + 1
+        hint = TYPE_HINTS.get(s.get("qtype", ""), "") if typed_hints and not prior else ""
         user = (f"{schema.prefix_header()}\n\nSchema:\n{ctx}\n\n"
-                f"Question: {s['question']}{prior}")
+                + (f"{hint}\n\n" if hint else "")
+                + f"Question: {s['question']}{prior}")
         out = strip_fences(llm(GEN_SYSTEM if not prior else REPAIR_SYSTEM, user))
         s["query"] = out
         s["schema"] = ctx
@@ -183,7 +222,12 @@ def build_react(llm: LLM, schema: SchemaIndex, store: GraphStore, retrieve_schem
     g = StateGraph(S)
     g.add_node("think_act", think_act)
     g.add_node("observe", observe)
-    g.set_entry_point("think_act")
+    if typed_hints:
+        g.add_node("classify", classify)
+        g.set_entry_point("classify")
+        g.add_edge("classify", "think_act")
+    else:
+        g.set_entry_point("think_act")
     g.add_edge("think_act", "observe")
     g.add_conditional_edges("observe", again, {"think_act": "think_act", END: END})
     return g.compile()
@@ -194,22 +238,17 @@ def build_react(llm: LLM, schema: SchemaIndex, store: GraphStore, retrieve_schem
 # --------------------------------------------------------------------------
 
 def build_orchestrator(llm: LLM, schema: SchemaIndex, store: GraphStore,
-                       retrieve_schema: bool = True, scope_check: bool = True):
+                       retrieve_schema: bool = True, scope_check: bool = True,
+                       typed_hints: bool = True):
+    """typed_hints=False is the mirror ablation arm: the full orchestrated flow
+    (classification and early refusal, gate, refine) without the
+    type-specific instruction."""
     def classify(s: S) -> S:
         s.setdefault("steps", []).append("classify")
         if not scope_check:
             s["qtype"] = "factual"
             return s
-        out = llm(
-            "Classify the question. Answer with exactly one word: "
-            "factual, causal, counterfactual, or out_of_scope.",
-            f"Graph domain: network alarms, incidents, causal dependencies.\n"
-            f"Question: {s['question']}",
-        ).strip().lower()
-        s["qtype"] = next(
-            (t for t in ("counterfactual", "causal", "out_of_scope", "factual") if t in out),
-            "factual",
-        )
+        s["qtype"] = classify_question(llm, s["question"])
         s["refused"] = s["qtype"] == "out_of_scope"
         s["llm_calls"] = s.get("llm_calls", 0) + 1
         return s
@@ -220,13 +259,7 @@ def build_orchestrator(llm: LLM, schema: SchemaIndex, store: GraphStore,
         return s
 
     def generate(s: S) -> S:
-        hint = {
-            "causal": "This is a ROOT-CAUSE question. Traverse causal properties "
-                      "transitively; do not rely on co-occurrence.",
-            "counterfactual": "This is a COUNTERFACTUAL question. Identify the "
-                              "downstream set that would not occur if the named "
-                              "node were removed or blocked.",
-        }.get(s.get("qtype", "factual"), "")
+        hint = TYPE_HINTS.get(s.get("qtype", "factual"), "") if typed_hints else ""
         user = (f"{schema.prefix_header()}\n\nSchema:\n{s['schema']}\n\n"
                 f"{hint}\n\nQuestion: {s['question']}")
         s["query"] = strip_fences(llm(GEN_SYSTEM, user))

@@ -104,7 +104,7 @@ From the repository root:
 ```bash
 pip install -r kgqa/requirements.txt
 
-# offline tests: no API key, no network (111 tests)
+# offline tests: no API key, no network (117 tests)
 pytest kgqa/tests -q
 
 # benchmark against any OpenAI-compatible endpoint (OpenAI, Groq, Mistral, vLLM, Ollama)
@@ -244,11 +244,56 @@ Raw per-question results: `results/react_run{0,1,2}.json`,
 - Latency is not reported: on the free tier, rate-limit waits dominate wall
   time and fall unevenly on the two topologies.
 
+### Ablation: instruction or control flow?
+
+The orchestrator differs from ReAct in two ways at once: its control flow
+(classification, symbolic gate, refine) and a type-specific instruction added
+to the generation prompt ("This is a ROOT-CAUSE question. Traverse causal
+properties transitively..."). Since the gate never fired, the gap could come
+from the instruction alone. Two arms separate the causes:
+
+| Arm | Control flow | Type-specific instruction |
+|---|---|---|
+| `react` | ReAct | no |
+| `react_typed` | ReAct, plus the same classification call | **yes**, verbatim |
+| `orchestrator_untyped` | orchestrator | no |
+| `orchestrator` | orchestrator | yes |
+
+In `react_typed` the class only selects the instruction; it never routes, so
+ReAct keeps its own refusal path. Prompts of the original two arms are
+unchanged character for character (checked on all 32 questions), so the
+existing runs stay comparable.
+
+```bash
+python kgqa/src/evaluate.py --model openai/gpt-oss-120b --topology ablation --seed 0 --reasoning-effort low
+```
+
+Reading the outcome: if `react_typed` reaches the orchestrator, the gain is the
+instruction; if `orchestrator_untyped` keeps it, the gain is the control flow.
+
+**C03: an inverted property, silently accepted.** C03 asks what directly
+caused the latency spike (gold: the CPU spike). In all 3 runs the orchestrator
+wrote `net:Alarm_Latency net:causallyLinkedTo ?cause`, the reverse direction:
+in this ontology `A causallyLinkedTo B` means A causes B, so the query asks
+for the *effects* of the latency spike, of which there are none. ReAct made
+the same inversion in 1 run of 3 and wrote the correct direction in the other
+two. The query is valid and uses only known IRIs, so neither the syntax check
+nor the symbolic gate can catch it; it returns zero rows without an error and
+no repair is attempted.
+
+Two points follow. The direction of `causallyLinkedTo` is stated only in its
+`rdfs:comment`; the name itself does not encode it (`causes` / `causedBy`
+would), so ontology naming is part of what an LLM agent can read correctly.
+And an empty answer to a question that presupposes one is a cheap signal the
+orchestrator does not use yet. Whether the type-specific instruction makes the
+inversion more likely is read off the ablation: compare C03 in `react_typed`
+and `orchestrator_untyped`.
+
 ### Limits
 
 - one model; a second model family is needed before generalising
 - small graph (102 triples) and 32 questions: the benchmark validates the
   method, not scale
-- the orchestrator fails C03 in every run while ReAct mostly succeeds; not
-  yet analysed
+- the orchestrator fails C03 in every run by inverting the direction of
+  `causallyLinkedTo` (see above)
 - entity linking is lexical; embedding retrieval is planned as an ablation

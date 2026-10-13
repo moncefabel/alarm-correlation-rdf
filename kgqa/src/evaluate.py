@@ -213,6 +213,21 @@ def score(pred_rows: list[dict], gold_rows: list[dict],
     return (*best, strict)
 
 
+# The two topologies, and the two ablation arms that separate the
+# type-specific instruction from the orchestrated control flow.
+TOPOLOGIES = {
+    "react":                 (build_react, {}),
+    "orchestrator":          (build_orchestrator, {}),
+    "react_typed":           (build_react, {"typed_hints": True}),
+    "orchestrator_untyped":  (build_orchestrator, {"typed_hints": False}),
+}
+
+
+def build_agent(topology: str, llm, schema: SchemaIndex, store: GraphStore, **flags):
+    builder, arm = TOPOLOGIES[topology]
+    return builder(llm, schema, store, **arm, **flags)
+
+
 def evaluate(topology: str, questions: list[dict], schema: SchemaIndex,
              store: GraphStore, llm, checkpoint: Path | None = None, **flags) -> dict:
     """Score one topology on the questions.
@@ -221,8 +236,7 @@ def evaluate(topology: str, questions: list[dict], schema: SchemaIndex,
     and questions already in the file are skipped. A run interrupted by a
     provider outage or an exhausted daily quota resumes where it stopped
     instead of starting over."""
-    agent = (build_react(llm, schema, store, **flags) if topology == "react"
-             else build_orchestrator(llm, schema, store, **flags))
+    agent = build_agent(topology, llm, schema, store, **flags)
     rows, traces = [], []
     done: dict[str, dict] = {}
     if checkpoint is not None and checkpoint.exists():
@@ -329,7 +343,10 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--questions", default="kgqa/benchmark/questions.yaml")
     ap.add_argument("--ontology", default="ontology/alarm_ontology.ttl")
-    ap.add_argument("--topology", default="both", choices=["react", "orchestrator", "both"])
+    ap.add_argument("--topology", default="both",
+                    choices=["both", "ablation", "all", *TOPOLOGIES],
+                    help="both: react and orchestrator. ablation: react_typed and "
+                         "orchestrator_untyped. all: the four arms.")
     ap.add_argument("--model", default="gpt-4o")
     ap.add_argument("--runs", type=int, default=1, help="Repeated runs, seeds 0..runs-1.")
     ap.add_argument("--seed", type=int, default=None,
@@ -352,7 +369,9 @@ def main() -> None:
     ap.add_argument("--out", default="kgqa/results")
     args = ap.parse_args()
 
-    topos = ["react", "orchestrator"] if args.topology == "both" else [args.topology]
+    topos = {"both": ["react", "orchestrator"],
+             "ablation": ["react_typed", "orchestrator_untyped"],
+             "all": list(TOPOLOGIES)}.get(args.topology, [args.topology])
     suffix = "_fullschema" if args.no_schema_retrieval else ""
     if args.aggregate:
         final = aggregate_dir(Path(args.out), topos, suffix)

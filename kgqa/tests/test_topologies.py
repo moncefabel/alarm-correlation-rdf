@@ -184,3 +184,78 @@ def test_query_is_extracted_from_real_model_answer_shapes(raw):
                                  "This graph has no such data. OUT_OF_SCOPE"])
 def test_refusal_is_recognised_with_noise(raw):
     assert strip_fences(raw) == REFUSAL
+
+
+# --------------------------------------------------------------- ablation
+# react_typed: ReAct + the orchestrator's classification and type-specific
+# instruction, nothing else. orchestrator_untyped: the orchestrated flow
+# without the instruction. Together they separate the two causes of the gap.
+
+from agents import TYPE_HINTS  # noqa: E402
+from evaluate import build_agent  # noqa: E402
+
+
+def recording(base):
+    seen = []
+
+    def llm(system, user):
+        seen.append((system, user))
+        return base(system, user)
+    return llm, seen
+
+
+CAUSAL_Q = next(q for q in QUESTIONS if q["id"] == "C04")
+
+
+@pytest.mark.parametrize("arm", ["react_typed", "orchestrator_untyped"])
+def test_ablation_arms_score_perfectly_with_a_perfect_model(env, arm):
+    schema, store = env
+    s = evaluate(arm, QUESTIONS, schema, store, oracle)["summary"]
+    assert s["execution_accuracy"] == 1.0 and s["refusal_accuracy"] == 1.0
+
+
+def test_react_typed_gets_exactly_the_orchestrator_instruction(env):
+    schema, store = env
+    llm, seen = recording(oracle)
+    tr = run(build_agent("react_typed", llm, schema, store), CAUSAL_Q["question"],
+             "react_typed", store)
+    assert tr.steps[0] == "classify" and tr.llm_calls == 2
+    generation = [u for s_, u in seen if not s_.startswith("Classify")]
+    assert TYPE_HINTS["causal"] in generation[0]
+
+    llm_o, seen_o = recording(oracle)
+    run(build_agent("orchestrator", llm_o, schema, store), CAUSAL_Q["question"],
+        "orchestrator", store)
+    gen_o = [u for s_, u in seen_o if not s_.startswith("Classify")]
+    assert TYPE_HINTS["causal"] in gen_o[0]
+
+
+def test_react_typed_does_not_inherit_the_orchestrator_routing(env):
+    """The class only selects an instruction: an out_of_scope label does not
+    make ReAct refuse, its own refusal path is untouched."""
+    schema, store = env
+
+    def says_oos_but_answers(system, user):
+        if system.startswith("Classify"):
+            return "out_of_scope"
+        return BY_TEXT[_question(user)]["gold_sparql"]
+
+    tr = run(build_agent("react_typed", says_oos_but_answers, schema, store),
+             CAUSAL_Q["question"], "react_typed", store)
+    assert not tr.refused and tr.rows
+
+
+def test_orchestrator_untyped_sends_no_instruction(env):
+    schema, store = env
+    llm, seen = recording(oracle)
+    run(build_agent("orchestrator_untyped", llm, schema, store), CAUSAL_Q["question"],
+        "orchestrator_untyped", store)
+    assert not any(h in u for _, u in seen for h in TYPE_HINTS.values())
+
+
+def test_plain_react_is_unchanged(env):
+    schema, store = env
+    llm, seen = recording(oracle)
+    tr = run(build_agent("react", llm, schema, store), CAUSAL_Q["question"], "react", store)
+    assert tr.steps[0] == "think_act" and tr.llm_calls == 1
+    assert not any(h in u for _, u in seen for h in TYPE_HINTS.values())
