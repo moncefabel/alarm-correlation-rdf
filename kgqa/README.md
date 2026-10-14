@@ -104,7 +104,7 @@ From the repository root:
 ```bash
 pip install -r kgqa/requirements.txt
 
-# offline tests: no API key, no network (117 tests)
+# offline tests: no API key, no network (124 tests)
 pytest kgqa/tests -q
 
 # benchmark against any OpenAI-compatible endpoint (OpenAI, Groq, Mistral, vLLM, Ollama)
@@ -188,10 +188,12 @@ kgqa/
 │   ├── graph_store.py      rdflib in memory or Fuseki over HTTP, SELECT and ASK
 │   ├── schema_context.py   schema, undeclared predicates and entity linking
 │   ├── agents.py           the two topologies over shared primitives
-│   └── evaluate.py         harness, metrics, repeated runs
+│   ├── evaluate.py         harness, metrics, repeated runs
+│   └── direction.py        audit: causal property traversed the wrong way round
 ├── benchmark/questions.yaml
-├── tests/                  benchmark self-check, topologies, endpoint mode, LLM client
+├── tests/                  benchmark self-check, topologies, endpoint mode, LLM client, audit
 ├── scripts/load_fuseki.sh
+├── scripts/direction_audit.py
 ├── .env.example            provider settings template (copy to .env)
 └── docker-compose.yml
 ```
@@ -239,8 +241,8 @@ Raw per-question results: `results/react_run{0,1,2}.json`,
 - The symbolic gate never fired: no invented IRI in any run, for either
   topology, once entities and literal values are in the context. The
   advantage therefore does not come from verification but from the
-  classification stage and the type-specific instruction it adds. Separating
-  the two (ReAct given the same instruction) is the next experiment.
+  classification stage and the type-specific instruction it adds. The
+  ablation below separates the two: the instruction carries the gain.
 - Latency is not reported: on the free tier, rate-limit waits dominate wall
   time and fall unevenly on the two topologies.
 
@@ -268,32 +270,91 @@ existing runs stay comparable.
 python kgqa/src/evaluate.py --model openai/gpt-oss-120b --topology ablation --seed 0 --reasoning-effort low
 ```
 
-Reading the outcome: if `react_typed` reaches the orchestrator, the gain is the
-instruction; if `orchestrator_untyped` keeps it, the gain is the control flow.
+**Result** (same model, settings and benchmark, 3 runs per arm):
 
-**C03: an inverted property, silently accepted.** C03 asks what directly
-caused the latency spike (gold: the CPU spike). In all 3 runs the orchestrator
-wrote `net:Alarm_Latency net:causallyLinkedTo ?cause`, the reverse direction:
-in this ontology `A causallyLinkedTo B` means A causes B, so the query asks
-for the *effects* of the latency spike, of which there are none. ReAct made
-the same inversion in 1 run of 3 and wrote the correct direction in the other
-two. The query is valid and uses only known IRIs, so neither the syntax check
-nor the symbolic gate can catch it; it returns zero rows without an error and
-no repair is attempted.
+| Arm | Execution accuracy | Strict | Answer F1 | Tokens / question |
+|---|---|---|---|---|
+| `react` | 0.750 ± 0.031 | 0.479 | 0.819 | 1 546 |
+| `orchestrator_untyped` | 0.750 ± 0.031 | 0.500 | 0.807 | 1 556 |
+| `react_typed` | 0.823 ± 0.036 | 0.542 | 0.862 | 1 767 |
+| `orchestrator` | **0.885 ± 0.018** | **0.635** | **0.923** | 1 601 |
 
-Two points follow. The direction of `causallyLinkedTo` is stated only in its
-`rdfs:comment`; the name itself does not encode it (`causes` / `causedBy`
-would), so ontology naming is part of what an LLM agent can read correctly.
-And an empty answer to a question that presupposes one is a cheap signal the
-orchestrator does not use yet. Whether the type-specific instruction makes the
-inversion more likely is read off the ablation: compare C03 in `react_typed`
-and `orchestrator_untyped`.
+| Bucket | n | react | orchestrator_untyped | react_typed | orchestrator |
+|---|---|---|---|---|---|
+| factual | 11 | 1.00 | 1.00 | 1.00 | 1.00 |
+| causal | 8 | 0.71 | 0.67 | 0.71 | 0.79 |
+| contrast | 3 | 0.44 | 0.44 | 0.56 | 0.89 |
+| counterfactual | 6 | 0.33 | 0.39 | 0.67 | 0.72 |
+| out_of_scope | 4 | 1.00 | 1.00 | 1.00 | 1.00 |
+
+Reading:
+
+- **The control flow alone adds nothing.** Without the instruction, the
+  orchestrator scores exactly what ReAct scores (0.750), bucket by bucket
+  within 0.06.
+- **The instruction carries the gain.** It adds 0.073 to ReAct and 0.135 to
+  the orchestrator, on the questions it targets: C04, X01, X02 and X03 need a
+  transitive traversal, and both instructed arms find it where neither
+  uninstructed arm does. Per question, `react_typed` beats `react` on 5 and
+  loses on 2 (sign test p ≈ 0.45); `orchestrator` beats `orchestrator_untyped`
+  on 6 and loses on 1 (p ≈ 0.13). Consistent in direction, not significant on
+  32 questions.
+- **The 0.063 left between `react_typed` and `orchestrator` is not evidence for
+  the control flow.** For questions classified causal or counterfactual the
+  two arms send the same generation call, byte for byte (same system prompt,
+  same user message, same instruction; for other classes they differ by two
+  blank lines). The gate never fired and repairs are rare (0.03 and 0.01 per
+  question), so the routing has almost nothing to act on. The differences sit
+  on C02, K02 and X01, which change outcome between arms with identical
+  prompts. The arms ran in different sessions, days apart: at temperature 0
+  with fixed seeds, variation between sessions is as large as this residual.
+  The next comparison runs all arms interleaved in one session.
+
+**Where the remaining errors come from.** `kgqa/scripts/direction_audit.py`
+compares the side of `net:causallyLinkedTo` on which each named alarm appears
+in the predicted query and in the gold query (`kgqa/src/direction.py`):
+
+| Arm (3 runs) | Wrong answers | Direction inverted | Where |
+|---|---|---|---|
+| `react` | 24 | 1 | C03 |
+| `orchestrator` | 11 | 5 | C02 x2, C03 x3 |
+
+Every inverted query is a wrong answer, and inversions are almost half of the
+orchestrator's errors. The query is valid and uses only known IRIs, so neither
+the syntax check nor the symbolic gate can catch it; it returns zero rows
+without an error, and no repair is attempted. C03 ("what directly caused the
+latency spike?") is the clearest case: plain ReAct answers it in 2 runs of 3,
+every other arm in 0 of 3, including `orchestrator_untyped`, whose generation
+prompt differs from ReAct's only by two blank lines. The inversion is
+therefore not caused by the instruction; on one question this is suggestive,
+not conclusive (one-sided Fisher p ≈ 0.045), but it points at prompt
+brittleness rather than reasoning.
+
+K02 fails in 10 of 12 runs across the arms for a different, schema-level
+reason: `correlatedWith` is stored in one direction only
+(`Alarm_Latency correlatedWith Alarm_PacketDrop`), and a query that looks the
+other way finds nothing. The gold query needs a UNION over both directions.
+
+Three points follow.
+
+- The direction of `causallyLinkedTo` is stated only in its `rdfs:comment`;
+  the name does not encode it (`causes` / `causedBy` would). Ontology naming
+  is part of what an LLM agent reads.
+- Two OWL axioms target the remaining errors directly: an inverse property
+  (`causedBy owl:inverseOf causallyLinkedTo`) for C02 and C03, and
+  `correlatedWith a owl:SymmetricProperty` for K02. Testing them, with the
+  inferred triples materialised, is the next experiment.
+- An empty answer to a question that presupposes one ("what caused...") is a
+  cheap signal for a repair, and a direction check like the audit could run
+  before execution. That is semantic verification, beyond the symbolic gate.
 
 ### Limits
 
 - one model; a second model family is needed before generalising
 - small graph (102 triples) and 32 questions: the benchmark validates the
   method, not scale
-- the orchestrator fails C03 in every run by inverting the direction of
-  `causallyLinkedTo` (see above)
+- direction inversions (C02, C03) and a one-way symmetric relation (K02)
+  cause most remaining errors (see above)
+- arms ran in different sessions; session-to-session variation is of the
+  order of the smallest differences reported
 - entity linking is lexical; embedding retrieval is planned as an ablation

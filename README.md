@@ -125,13 +125,14 @@ the control flow differs, so the comparison isolates the topology.
   hand-written answer
 - symbolic gate rejecting IRIs absent from the graph before execution
 - runs on in-memory rdflib or Apache Jena Fuseki (`SPARQL_ENDPOINT`)
-- 117 offline tests, no API key required
+- 124 offline tests, no API key required
 - result (gpt-oss-120b, 3 runs, Fuseki): execution accuracy 0.885 for the
   orchestrator against 0.750 for ReAct, the whole gap on multi-hop causal and
-  counterfactual questions, for 3.6 % more tokens. Details and limits in
-  [`kgqa/README.md`](kgqa/README.md#results)
-
-See [`kgqa/README.md`](kgqa/README.md). LLM results are not reported yet.
+  counterfactual questions, for 3.6 % more tokens
+- ablation (4 arms, 3 runs each): the gain comes from the type-specific
+  instruction, not the control flow; most remaining errors are queries that
+  traverse a causal property the wrong way round, which no symbolic check
+  catches. Details and limits in [`kgqa/README.md`](kgqa/README.md#results)
 
 ## Results summary
 
