@@ -1,0 +1,48 @@
+# Gold list for the cross-source link sup:investigatedWith:
+# for each SAP HANA alert (from the knowledge-article titles), the system
+# views (from the SAP HANA Cloud SQL reference) an administrator queries first
+# to investigate it.
+#
+# STATUS: DRAFT written by the assistant from general SAP HANA administration
+# knowledge, to be checked by the annotator against the view descriptions in
+# the documentation before any score is reported. Change `annotator` and
+# `status` once checked. View names must exist in the documentation (a test
+# checks this).
+#
+# Alerts come from the SAP HANA platform alert checks; the views are those of
+# SAP HANA Cloud, which keeps the same monitoring views for these areas.
+status: draft
+annotator: ""
+alerts:
+  1:  [M_HOST_RESOURCE_UTILIZATION]                 # Host physical memory usage
+  2:  [M_DISK_USAGE, M_DISKS]                       # Disk usage
+  3:  [M_SERVICES]                                  # Inactive services
+  4:  [M_SERVICES]                                  # Restarted services
+  5:  [M_HOST_RESOURCE_UTILIZATION, M_LOAD_HISTORY_HOST]   # Host CPU usage
+  10: [M_CONFIGURATION_PARAMETER_VALUES, M_DELTA_MERGE_STATISTICS]  # Delta merge (mergedog) configuration
+  12: [M_SERVICE_MEMORY]                            # Memory usage of name server
+  16: [M_CONFIGURATION_PARAMETER_VALUES]            # Lock wait timeout configuration
+  19: [M_CS_TABLES]                                 # Record count of delta storage of column-store tables
+  25: [M_CONNECTIONS]                               # Check number of connections
+  27: [M_CS_TABLES]                                 # Record count of column-store table partitions
+  29: [M_CS_TABLES]                                 # Size of delta storage of column-store tables
+  31: [M_LICENSE]                                   # License expiry
+  34: [M_VOLUMES, M_DATA_VOLUMES]                   # Unavailable volumes
+  35: [M_BACKUP_CATALOG]                            # Existence of data backup
+  36: [M_BACKUP_CATALOG]                            # Status of most recent data backup
+  37: [M_BACKUP_CATALOG]                            # Age of most recent data backup
+  38: [M_BACKUP_CATALOG]                            # Status of most recent log backup
+  40: [M_CS_TABLES]                                 # Total memory usage of column-store tables
+  42: [M_ACTIVE_STATEMENTS]                         # Long-running cursors
+  43: [M_SERVICE_MEMORY]                            # Memory usage of services
+  49: [M_BLOCKED_TRANSACTIONS]                      # Long-running blocking transaction
+  50: [M_TRACEFILES]                                # Number of diagnosis files
+  51: [M_TRACEFILES]                                # Size of diagnosis files
+  53: [M_TRACEFILES]                                # Pagedump files
+  54: [M_SAVEPOINTS, M_SAVEPOINT_STATISTICS]        # Savepoint duration
+  55: [M_CS_UNLOADS]                                # Column store unloads
+  58: [M_SQL_PLAN_CACHE_OVERVIEW, M_SQL_PLAN_CACHE] # Plan cache size
+  62: [USERS, M_PASSWORD_POLICY]                    # Expiration of database user passwords
+  65: [M_BACKUP_PROGRESS, M_BACKUP_CATALOG]         # Runtime of the log backups currently running
+  69: [M_CONFIGURATION_PARAMETER_VALUES]            # Enablement of automatic log backup
+  98: [M_CS_LOB_SPACE_RECLAIMS]                     # LOB garbage collection activity

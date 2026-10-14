@@ -22,6 +22,7 @@
 @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix dct:  <http://purl.org/dc/terms/> .
 @prefix ppms: <http://example.org/ppms#> .
 @prefix sup:  <http://example.org/sapsupport#> .
 
@@ -178,6 +179,89 @@ sup:sourceUrl a owl:DatatypeProperty ;
     rdfs:range xsd:anyURI ;
     rdfs:label "source URL" ;
     rdfs:comment "Public page the facts about this entity were extracted from." .
+
+
+# ------------------------------------------------------ help documentation
+
+sup:DocumentationTopic a owl:Class ;
+    rdfs:label "Documentation topic" ;
+    rdfs:comment "A page of SAP's product documentation." .
+
+sup:SystemView a owl:Class ;
+    rdfs:subClassOf sup:DocumentationTopic ;
+    rdfs:label "System view" ;
+    rdfs:comment "A read-only SQL view of the SAP HANA database catalog or state, such as USERS." .
+
+sup:MonitoringView a owl:Class ;
+    rdfs:subClassOf sup:SystemView ;
+    rdfs:label "Monitoring view" ;
+    rdfs:comment "A system view (M_*) exposing the database's run-time state; what an administrator queries when an alert fires." .
+
+sup:SQLStatement a owl:Class ;
+    rdfs:subClassOf sup:DocumentationTopic ;
+    rdfs:label "SQL statement" ;
+    rdfs:comment "A documented SQL statement, such as ALTER SYSTEM CLEAR TRACES." .
+
+sup:Column a owl:Class ;
+    rdfs:label "Column" ;
+    rdfs:comment "A column of a system view." .
+
+sup:DocumentationTopic owl:disjointWith sup:KnowledgeArticle , sup:Alert , sup:ApplicationComponent , sup:Tool , sup:ProductItem , sup:Column .
+sup:SystemView owl:disjointWith sup:SQLStatement .
+
+sup:hasColumn a owl:ObjectProperty ;
+    rdfs:domain sup:SystemView ;
+    rdfs:range  sup:Column ;
+    rdfs:label  "has column" .
+
+sup:columnOf a owl:ObjectProperty , owl:FunctionalProperty ;
+    owl:inverseOf sup:hasColumn ;
+    rdfs:label "column of view" .
+
+sup:seeAlso a owl:ObjectProperty , owl:SymmetricProperty ;
+    rdfs:domain sup:DocumentationTopic ;
+    rdfs:range  sup:DocumentationTopic ;
+    rdfs:label  "see also" ;
+    rdfs:comment "The documentation lists the two pages as related information." .
+
+sup:investigatedWith a owl:ObjectProperty ;
+    rdfs:domain sup:Alert ;
+    rdfs:range  sup:SystemView ;
+    rdfs:label  "investigated with view" ;
+    rdfs:comment "To investigate this alert, query this view. A cross-source link: alerts come from knowledge articles, views from the help documentation." .
+
+sup:helpsInvestigate a owl:ObjectProperty ;
+    owl:inverseOf sup:investigatedWith ;
+    rdfs:label "helps investigate alert" .
+
+sup:viewName a owl:DatatypeProperty , owl:FunctionalProperty ;
+    rdfs:domain sup:SystemView ;
+    rdfs:range  xsd:string ;
+    rdfs:label  "view name" .
+
+sup:statementCategory a owl:DatatypeProperty ;
+    rdfs:domain sup:SQLStatement ;
+    rdfs:range  xsd:string ;
+    rdfs:label  "statement category" .
+
+sup:columnName a owl:DatatypeProperty ;
+    rdfs:domain sup:Column ;
+    rdfs:range  xsd:string ;
+    rdfs:label  "column name" .
+
+sup:dataType a owl:DatatypeProperty ;
+    rdfs:domain sup:Column ;
+    rdfs:range  xsd:string ;
+    rdfs:label  "data type" .
+
+sup:SystemView owl:hasKey ( sup:viewName ) .
+
+# The documentation source and its licence, so attribution travels with the data.
+sup:Source_HANACloudDocs a prov:Entity ;
+    rdfs:label "SAP HANA Cloud, SAP HANA Database documentation (Markdown source)" ;
+    dct:publisher "SAP SE" ;
+    dct:license <https://creativecommons.org/licenses/by/4.0/> ;
+    prov:wasDerivedFrom <https://github.com/SAP-docs/sap-hana-cloud-hana-database> .
 
 # Keys: one node per article number, per alert number, per component code.
 sup:KnowledgeArticle    owl:hasKey ( sup:articleNumber ) .

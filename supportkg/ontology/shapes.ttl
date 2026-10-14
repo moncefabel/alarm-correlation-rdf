@@ -84,3 +84,35 @@ sup:SupportPackageShape a sh:NodeShape ;
         sh:path ppms:spsNumber ;
         sh:minCount 1 ; sh:maxCount 1 ;
         sh:datatype xsd:integer ] .
+
+sup:SystemViewShape a sh:NodeShape ;
+    sh:targetClass sup:SystemView ;
+    sh:property [
+        sh:path sup:viewName ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:pattern "^[A-Z][A-Z0-9_$#]*$" ;
+        sh:message "A view has exactly one upper-case SQL name." ] ;
+    sh:property [ sh:path rdfs:label ; sh:minCount 1 ] ;
+    sh:property [ sh:path sup:sourceUrl ; sh:minCount 1 ] ;
+    sh:property [ sh:path sup:hasColumn ; sh:class sup:Column ] ;
+    sh:property [ sh:path sup:seeAlso ; sh:class sup:DocumentationTopic ] .
+
+sup:SQLStatementShape a sh:NodeShape ;
+    sh:targetClass sup:SQLStatement ;
+    sh:property [ sh:path rdfs:label ; sh:minCount 1 ] ;
+    sh:property [ sh:path sup:statementCategory ; sh:minCount 1 ; sh:maxCount 1 ] ;
+    sh:property [ sh:path sup:sourceUrl ; sh:minCount 1 ] .
+
+sup:ColumnShape a sh:NodeShape ;
+    sh:targetClass sup:Column ;
+    sh:property [ sh:path sup:columnName ; sh:minCount 1 ; sh:maxCount 1 ] ;
+    sh:property [ sh:path sup:dataType ; sh:minCount 1 ; sh:maxCount 1 ] ;
+    sh:property [
+        sh:path sup:columnOf ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:class sup:SystemView ;
+        sh:message "A column belongs to exactly one view." ] .
+
+sup:AlertViewShape a sh:NodeShape ;
+    sh:targetClass sup:Alert ;
+    sh:property [ sh:path sup:investigatedWith ; sh:class sup:SystemView ] .

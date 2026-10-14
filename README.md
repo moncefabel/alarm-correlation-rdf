@@ -136,21 +136,21 @@ the control flow differs, so the comparison isolates the topology.
 
 ### 5. SAP support knowledge graph ([`supportkg/`](supportkg/))
 The same question at enterprise scale needs the graph to be built, not written by
-hand. `supportkg` builds a multi-source support knowledge graph from public SAP
-material: knowledge-article previews (the "How to handle HANA Alert N" series and
-related notes), application component codes, and a PPMS-shaped product slice
-(ProductLine, Product, ProductVersion, SoftwareComponent, SupportPackage; a
-hand-written stand-in, since PPMS is internal).
+hand. `supportkg` builds a multi-source support knowledge graph from open and
+public SAP material: the SAP HANA Cloud SQL reference (516 system and monitoring
+views, 6 490 columns, 182 SQL statements; CC-BY-4.0, cloned from SAP's GitHub),
+the titles of 39 knowledge articles (the "How to handle HANA Alert N" series), and
+a PPMS-shaped product slice (a hand-written stand-in, since PPMS is internal).
 
-- OWL ontology with a named inverse for every directed relation and a symmetric
-  co-occurrence relation, the two fixes the kgqa error analysis points to
-- extraction with spaCy (custom tokenizer rule, EntityRuler built from the
-  ontology's labels) and an optional Hugging Face embedding linker
-- entity resolution on article numbers, alert numbers and component codes;
-  statement-level PROV-O provenance; SHACL validation
-- collector that respects robots.txt and keeps SAP's texts out of the repository
-- extraction scored per relation against hand annotations; the graph loads into
-  Fuseki for the kgqa agents. Details in [`supportkg/README.md`](supportkg/README.md)
+- OWL ontology with a named inverse for every directed relation and symmetric
+  undirected relations, the two fixes the kgqa error analysis points to
+- a cross-source link predicted from no single source: which monitoring view to
+  query for which alert, by a lexical baseline and a Hugging Face embedding model,
+  scored against a gold list
+- spaCy extraction for article pages; entity resolution; statement-level PROV-O
+  provenance; SHACL validation (53 000 triples, conforming)
+- no scraping: SAP's support portal disallows crawlers, and the collector checks
+  robots.txt and refuses. Details in [`supportkg/README.md`](supportkg/README.md)
 
 ## Results summary
 

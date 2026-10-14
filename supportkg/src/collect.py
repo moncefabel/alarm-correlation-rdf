@@ -1,18 +1,25 @@
-"""Collect public SAP knowledge-article previews.
+"""Knowledge-article sources, three ways, none of which scrapes a site that
+forbids it.
 
-    python supportkg/src/collect.py                          # seeds/articles.txt
-    python supportkg/src/collect.py --follow 1 --max 120     # also articles they cite
+    python supportkg/src/collect.py                               # titles (default)
+    python supportkg/src/collect.py --mode saved --saved-dir DIR  # + pages you saved
+    python supportkg/src/collect.py --mode web                    # robots.txt permitting
 
-Runs on your own machine. It is polite and conservative by construction:
-  - reads robots.txt first and skips any path it disallows;
-  - one request every --delay seconds (default 3), identified by its user agent;
-  - caches every page in data/raw/, so a rerun fetches nothing twice;
-  - stores raw pages and parsed text under data/ only, which git ignores:
-    SAP's texts are SAP's property and stay out of the repository. The graph
-    keeps numbers, titles, codes and links to the source page.
+titles  Number and title of each article in seeds/articles.txt, as public
+        search-engine listings show them. Enough for the alert each how-to
+        article addresses and the alert's name.
+saved   Preview pages a person opened in a browser and saved (File > Save
+        page as, HTML only) into a folder. robots.txt governs automated
+        crawlers, not a person reading pages; the folder stays local and git
+        ignores it. Saved pages add symptom, product and keyword fields; for
+        numbers with no saved page the title record is kept.
+web     Automated download. It reads robots.txt first and skips every
+        disallowed path. SAP's support portal disallows all crawlers except
+        named search engines (checked 2026-10-14), so this mode collects
+        nothing there; it is kept for sources that allow it.
 
-With --follow 1, article numbers cited in a fetched preview are queued too
-(one level), which grows the graph along the references SAP itself makes.
+Raw pages and parsed text stay under supportkg/data/, which git ignores: SAP's
+texts are SAP's property. The graph keeps numbers, titles, codes and links.
 """
 
 from __future__ import annotations
@@ -110,24 +117,73 @@ def collect(numbers: list[str], raw_dir: Path, parsed_path: Path, delay: float,
     return stats
 
 
+def records_from_titles(path: Path) -> list:
+    """Records from the seed list: '1977220   # How to handle HANA Alert 54: ...'."""
+    from parse import Record
+    out = []
+    for ln in path.read_text().splitlines():
+        num, _, title = ln.partition("#")
+        num, title = num.strip(), title.strip()
+        if re.fullmatch(r"\d{6,7}", num) and title:
+            out.append(Record(number=num, title=title, url=URL.format(n=num)))
+    return out
+
+
+def records_from_saved(folder: Path) -> tuple[list, list[str]]:
+    """Records from preview pages saved by hand; the number comes from the page."""
+    recs, bad = [], []
+    for f in sorted(list(folder.glob("*.html")) + list(folder.glob("*.htm"))):
+        try:
+            rec = parse(f.read_text(errors="replace"))
+        except ParseError as exc:
+            bad.append(f"{f.name}: {exc}")
+            continue
+        rec.url = URL.format(n=rec.number)
+        recs.append(rec)
+    return recs, bad
+
+
+def write_records(records, parsed_path: Path) -> None:
+    parsed_path.parent.mkdir(parents=True, exist_ok=True)
+    with parsed_path.open("w") as f:
+        for rec in records:
+            f.write(json.dumps(rec.to_dict(), ensure_ascii=False) + "\n")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
+    ap.add_argument("--mode", choices=["titles", "saved", "web"], default="titles")
     ap.add_argument("--seeds", default=str(ROOT / "seeds" / "articles.txt"))
+    ap.add_argument("--saved-dir", default=str(ROOT / "data" / "saved"))
     ap.add_argument("--raw", default=str(ROOT / "data" / "raw"))
     ap.add_argument("--parsed", default=str(ROOT / "data" / "parsed" / "articles.jsonl"))
     ap.add_argument("--delay", type=float, default=3.0)
-    ap.add_argument("--follow", type=int, default=0, help="Levels of cited articles to queue.")
-    ap.add_argument("--max", type=int, default=150, help="Upper bound on pages visited.")
+    ap.add_argument("--follow", type=int, default=0, help="web mode: levels of cited articles.")
+    ap.add_argument("--max", type=int, default=150, help="web mode: upper bound on pages.")
     args = ap.parse_args()
 
-    rp = robots()
-    stats = collect(read_seeds(Path(args.seeds)), Path(args.raw), Path(args.parsed),
-                    args.delay, args.follow, args.max, rp=rp)
-    print(json.dumps({k: v if not isinstance(v, list) else (len(v), v[:5]) for k, v in stats.items()},
-                     indent=1))
-    if stats["unparsed"]:
-        print("\nSome pages could not be parsed. Send one file from data/raw/ "
-              "to adapt the parser to the current layout.")
+    if args.mode == "web":
+        rp = robots()
+        stats = collect(read_seeds(Path(args.seeds)), Path(args.raw), Path(args.parsed),
+                        args.delay, args.follow, args.max, rp=rp)
+        print(json.dumps({k: v if not isinstance(v, list) else (len(v), v[:5])
+                          for k, v in stats.items()}, indent=1))
+        if stats["disallowed"]:
+            print("\nrobots.txt disallows these pages for automated tools: nothing was "
+                  "fetched. Use --mode titles, or --mode saved with pages saved by hand.")
+        return
+
+    records = {r.number: r for r in records_from_titles(Path(args.seeds))}
+    report = {"from_titles": len(records)}
+    if args.mode == "saved":
+        saved, bad = records_from_saved(Path(args.saved_dir))
+        for r in saved:
+            records[r.number] = r                 # a saved page has more fields
+        report.update(from_saved_pages=len(saved), unparsed_saved_pages=bad)
+    write_records(list(records.values()), Path(args.parsed))
+    report["records_written"] = len(records)
+    report["file"] = args.parsed
+    print(json.dumps(report, indent=1))
 
 
 if __name__ == "__main__":

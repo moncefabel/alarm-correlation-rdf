@@ -1,105 +1,128 @@
-# supportkg: an SAP support knowledge graph from public sources
+# supportkg: an SAP support knowledge graph from open and public sources
 
-A small version of the full pipeline that a support knowledge graph needs: build a
-multi-source knowledge graph for SAP service and support, then query it with
-LLM agents in SPARQL, and measure both. The query side is
-[`kgqa/`](../kgqa/); this module is the build side.
+A small version of the build side of an SAP support knowledge graph: combine
+several sources into one RDF graph with a formal ontology, link them across
+sources, keep the provenance of every fact, validate the result. The query
+side is [`kgqa/`](../kgqa/), whose agents read this graph unchanged.
 
 ```
-public KBA previews ──► collect ──► parse ──► extract (spaCy rules + HF linker)
-PPMS-shaped stand-in ─────────────────────────────┐        │
-tools gazetteer ──────────────────────────────────┤        ▼
-support.ttl (OWL) ────────────────────────────────┴──► build: entity resolution,
-                                                        OWL inverse/symmetric materialisation,
-                                                        PROV-O provenance, SHACL validation
-                                                              │
-                                     graph.ttl ◄──────────────┘──► Fuseki ──► kgqa agents
+SAP HANA Cloud SQL reference (CC-BY-4.0, git clone) ─► docs.py ─┐
+knowledge-article titles (public listings) ──────────► extract ─┤
+pages saved by hand (optional) ──────────────────────► extract ─┤
+PPMS-shaped stand-in, tools list ───────────────────────────────┤
+support.ttl (OWL) ──────────────────────────────────────────────┴─► build.py
+      entity resolution · alert → view linker (lexical | Hugging Face)
+      OWL inverse/symmetric materialisation · PROV-O provenance · SHACL
+                                         │
+                              out/graph.ttl ──► Fuseki ──► kgqa agents
 ```
 
 ## Sources
 
-| Source | What it gives | How it enters |
+| Source | Gives | Licence and access |
 |---|---|---|
-| Public previews of SAP Notes and KBAs | number, title, symptom, environment, product, keywords | collected on your machine, parsed, extracted |
-| The "How to handle HANA Alert N" KBA series | one article per SAP HANA alert check: alert numbers and names | extracted from titles and symptoms |
-| Application component codes (HAN-DB-MON...) | the support routing hierarchy | extracted from keywords; hierarchy from the code |
+| [SAP HANA Cloud, SAP HANA Database documentation](https://github.com/SAP-docs/sap-hana-cloud-hana-database), SQL reference | 516 system and monitoring views (description, 6 490 columns with types, related pages) and 182 SQL statements with their category | CC-BY-4.0, © SAP SE; cloned with git, nothing scraped. Each node keeps the page URL at the cloned commit |
+| Knowledge-article titles (`seeds/articles.txt`) | number and title of 39 SAP Notes and KBAs, 32 of them the "How to handle HANA Alert N" series: which alert each addresses, and the alert's name | titles as listed publicly by search engines |
+| Preview pages saved by hand (optional) | symptom, product, keywords (component codes) for the articles you save | a person reading public pages in a browser; kept local |
 | PPMS-shaped stand-in (`ontology/ppms_standin.ttl`) | ProductLine, Product, ProductVersion, SoftwareComponent, SupportPackage for SAP HANA | hand-written; **not PPMS data**, PPMS is internal |
-| Tools gazetteer (`ontology/tools.ttl`) | HANA studio, cockpit, DBACOCKPIT, hdbcons... | hand-curated |
+| Tools list (`ontology/tools.ttl`) | HANA studio, cockpit, DBACOCKPIT, hdbcons... | hand-curated |
 
-Seed list: `seeds/articles.txt`, 39 articles (32 alert how-tos plus overviews and
-SAP HANA Cloud articles). `--follow 1` also collects the articles they cite.
+Why not download the article previews automatically: SAP's support portal
+robots.txt disallows every crawler except named search engines (checked
+2026-10-14). `collect.py --mode web` reads robots.txt first and, for this
+site, collects nothing. That is the intended behaviour.
+
+## The cross-source link
+
+No source says which monitoring view to query when an alert fires: alerts
+come from the knowledge articles, views from the documentation. `build.py`
+predicts `sup:investigatedWith` (alert → view) and records how:
+
+- **lexical** baseline: the alert name's words found in the view's name and
+  description, weighted by rarity (IDF), name matches counted double;
+- **embedding**: cosine similarity of sentence embeddings
+  (`sentence-transformers/all-MiniLM-L6-v2`, Hugging Face, PyTorch).
+
+Both keep the top 2 views above a threshold fixed before any embedding result
+was seen. They are scored against `gold/alert_views.yaml` (32 alerts),
+**currently a draft** to be checked against the documentation before scores
+are reported.
+
+| Method | Precision | Recall | F1 | hit@2 |
+|---|---|---|---|---|
+| lexical (draft gold) | 0.469 | 0.375 | 0.417 | 0.438 |
+| embedding | run `evaluate_links.py --method hf` | | | |
+
+The lexical baseline finds links whose words match (`Disk usage` →
+`M_DISK_USAGE`) and misses paraphrases (`Number of diagnosis files` →
+`M_TRACEFILES`), which is what the embedding model is there to close.
 
 ## Ontology
 
 `ontology/support.ttl` (OWL 2), aligned with the PPMS vocabulary instead of
-redefining it (`ppms:Product rdfs:subClassOf sup:ProductItem`). It builds in
-the two lessons of the kgqa error analysis:
+redefining it. It builds in the two lessons of the kgqa error analysis:
 
-- **every directed relation has a named inverse**: `addresses` / `addressedBy`,
-  `assignedTo` / `hasArticle`, `appliesTo` / `hasApplicableArticle`,
-  `references` / `referencedBy`, `subComponentOf` / `hasSubComponent`. In kgqa,
-  most of the orchestrator's remaining errors were queries that read
-  `causallyLinkedTo` against its direction;
-- **an undirected relation is symmetric**: `cooccursWith` between alerts
-  reported together (co-occurrence, explicitly not causation). In kgqa, K02
-  failed because `correlatedWith` was stored one way.
+- **every directed relation has a named inverse**: `addresses` /
+  `addressedBy`, `investigatedWith` / `helpsInvestigate`, `hasColumn` /
+  `columnOf`, `assignedTo` / `hasArticle`, `appliesTo` /
+  `hasApplicableArticle`, `references` / `referencedBy`, `subComponentOf` /
+  `hasSubComponent`;
+- **undirected relations are symmetric**: `cooccursWith` between alerts,
+  `seeAlso` between documentation pages.
 
-Also: `subComponentOf` is transitive (and a sub-property of
-`skos:broaderTransitive`), KBA and SAP Note are disjoint, keys
-(`owl:hasKey`) on article number, alert number and component code.
-`ontology/shapes.ttl` holds the SHACL shapes the built graph must pass.
+Also: class hierarchy MonitoringView ⊑ SystemView ⊑ DocumentationTopic,
+disjointness between kinds of thing, keys (`owl:hasKey`) on article number,
+alert number, component code and view name, and a source node carrying the
+documentation's CC-BY-4.0 licence (`dct:license`). `ontology/shapes.ttl` holds
+the SHACL shapes the graph must pass.
 
-## Extraction
+## Extraction from articles
 
-| Relation | Method | Notes |
-|---|---|---|
-| `addresses` | title rule | "How to handle HANA Alert 54: ..." and its variants ("How-To: Handle", "Handle HANA Alert 69", "alert (ID=75)") |
-| `mentionsAlert` | regex in title and symptom; embedding linker | "Alert ID 39", "alerts 1, 2 and 43"; the linker covers articles that never give a number |
-| `cooccursWith` | same article | alerts reported together |
-| `assignedTo` | keyword rule | component codes; the following keyword is the component name |
-| `subComponentOf` | code prefix | HAN-DB-MON → HAN-DB → HAN |
-| `appliesTo` | gazetteer; embedding linker | Product section strings to the PPMS stand-in |
-| `references` | regex | "SAP Note 1758890", "KBAs 2000002 and 2000003" |
-| `usesTool` | gazetteer (spaCy PhraseMatcher) | tools.ttl labels |
+| Relation | Method |
+|---|---|
+| `addresses` | title rule: "How to handle HANA Alert 54: ..." and its variants |
+| `mentionsAlert` | regex in title and symptom ("Alert ID 39", "alerts 1, 2 and 43"); embedding linker for articles that never give a number |
+| `cooccursWith` | alerts reported in the same article |
+| `assignedTo`, `subComponentOf` | component codes in the keywords; hierarchy from the code (HAN-DB-MON → HAN-DB → HAN) |
+| `appliesTo` | Product section strings linked to the PPMS stand-in (gazetteer, then embeddings) |
+| `references`, `usesTool` | cited article numbers; tool names (spaCy PhraseMatcher) |
 
-spaCy runs as a blank English pipeline (no model download): a custom tokenizer
-rule keeps component codes in one token, an EntityRuler built from the
-ontology's own labels finds tools and products, a custom component turns
-numbered references into entity spans. The Hugging Face linker
-(`src/link.py`, `sentence-transformers/all-MiniLM-L6-v2` on PyTorch) is
-optional and switched on with `--linker hf`; comparing the two is the
-extraction ablation.
+The last four need saved pages: titles alone give `addresses`,
+`mentionsAlert` and the alert names. spaCy runs as a blank English pipeline
+(no model download) with a custom tokenizer rule and an EntityRuler built from
+the ontology's own labels.
 
-Every extracted triple gets a statement node in `out/provenance.ttl`:
-source page (`prov:wasDerivedFrom`), method, confidence. An answer from the
-agents can be traced back to the page each triple came from.
+Every extracted or predicted triple gets a statement node in
+`out/provenance.ttl`: the page(s) it came from (`prov:wasDerivedFrom`), the
+method and a confidence. A predicted alert → view link cites both the
+article that names the alert and the documentation page of the view.
 
 ## Run
 
-On your machine (the collector needs internet access to SAP's public pages):
-
 ```bash
 pip install -r supportkg/requirements.txt
-python supportkg/src/collect.py --follow 1           # about 3 s per page, cached in supportkg/data/raw
-python supportkg/src/build.py                        # rules only -> supportkg/out/graph.ttl
-pip install sentence-transformers                    # optional: Hugging Face linker (PyTorch)
-python supportkg/src/build.py --linker hf
+git clone --depth 1 https://github.com/SAP-docs/sap-hana-cloud-hana-database \
+    supportkg/data/sap-hana-cloud-hana-database
+python supportkg/src/collect.py                     # article records from the seed titles
+python supportkg/src/build.py                       # -> supportkg/out/graph.ttl, provenance.ttl, report.json
+python supportkg/src/evaluate_links.py --show       # lexical alert -> view links against the gold list
 
-# load into Fuseki next to the alarm graph, and point kgqa at it
+pip install sentence-transformers                   # optional: Hugging Face models (PyTorch)
+python supportkg/src/evaluate_links.py --method both --show
+python supportkg/src/build.py --view-linker hf      # graph with embedding links
+
+# load into Fuseki next to the alarm graph
 docker compose -f kgqa/docker-compose.yml up -d
 DATASET=support bash kgqa/scripts/load_fuseki.sh supportkg/out/graph.ttl
 ```
 
-Extraction scores, after annotating a sample by hand:
+With pages saved by hand in `supportkg/data/saved/`:
+`python supportkg/src/collect.py --mode saved`, then `build.py` again, and
+`evaluate_extraction.py --template 25` for the annotation form of the
+article-level extraction.
 
-```bash
-python supportkg/src/evaluate_extraction.py --template 25    # writes supportkg/gold/annotations.yaml
-# fill it from the pages in a browser, without looking at the extractor's output
-python supportkg/src/evaluate_extraction.py --show-errors
-python supportkg/src/evaluate_extraction.py --linker hf
-```
-
-Tests (offline, no SAP page, no model download):
+Tests (offline, no SAP page, no model download; one test also checks the gold
+views against the real documentation when the clone is present):
 
 ```bash
 pytest supportkg/tests -q
@@ -107,20 +130,19 @@ pytest supportkg/tests -q
 
 ## Data rules
 
-SAP's texts are SAP's property. The collector reads `robots.txt` and skips any
-disallowed path, waits between requests, identifies itself and caches every
-page so nothing is fetched twice. Raw pages and parsed text stay in
-`supportkg/data/`, which git ignores. The graph keeps article numbers, titles,
-component codes, alert numbers and names, and links to the public page each
-fact came from. The test pages in `tests/fixtures/` are synthetic: invented
-text and fake numbers (99000xx).
+The documentation is CC-BY-4.0: reuse with attribution, which the graph
+carries (`dct:license`, `dct:publisher "SAP SE"`, page URL per node). Article
+pages are SAP's property: none is downloaded automatically; pages saved by
+hand stay in `supportkg/data/`, which git ignores, and the graph keeps only
+numbers, titles, codes and links. The test pages in `tests/fixtures/` are
+synthetic (invented text, fake numbers).
 
 ## Status
 
-- built: ontology, PPMS stand-in, SHACL shapes, collector, parser, spaCy
-  extraction, embedding linker, graph builder with provenance and OWL
-  materialisation, extraction scoring, 32 offline tests
-- next: first collection run, annotated sample and extraction scores; a
-  support benchmark (lookup, multi-hop article → alert → component → product,
-  lifecycle, negation, out of scope) run through the kgqa agents, with and
-  without the materialised inverses
+- built: ontology, PPMS stand-in, SHACL shapes, documentation ingestion,
+  article sources that do not scrape, spaCy extraction, lexical and embedding
+  linkers, graph builder with provenance and OWL materialisation, link and
+  extraction scoring
+- next: check the gold list, run the embedding linker, then a support
+  benchmark (which view for which alert, which columns, which statement, which
+  article) through the kgqa agents, with and without the materialised inverses

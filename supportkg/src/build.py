@@ -26,12 +26,13 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import sys
 from collections import Counter, defaultdict
 from pathlib import Path
 
 from rdflib import Graph, Literal, Namespace, RDF, RDFS, URIRef
-from rdflib.namespace import OWL, PROV, SKOS, XSD
+from rdflib.namespace import DCTERMS, OWL, PROV, SKOS, XSD
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
@@ -98,7 +99,47 @@ def materialise(g: Graph, onto: Graph) -> int:
     return added
 
 
-def build_graph(records: list[Record], linker_factory=None, materialise_axioms: bool = True):
+def slug(name: str) -> str:
+    return re.sub(r"[^A-Za-z0-9_]+", "_", name).strip("_")
+
+
+def add_docs(data: Graph, docs) -> dict[str, URIRef]:
+    """Help-documentation pages as typed nodes, with columns and related links.
+    Provenance is per page (sup:sourceUrl at a fixed commit) and per source
+    (dct:source, carrying the CC-BY-4.0 licence)."""
+    by_key: dict[str, URIRef] = {}
+    kinds = {"monitoring_view": SUP.MonitoringView, "system_view": SUP.SystemView,
+             "sql_statement": SUP.SQLStatement}
+    for d in docs:
+        node = SUP[("Statement_" if d.kind == "sql_statement" else "View_") + slug(d.name)]
+        by_key[d.key] = node
+        data.add((node, RDF.type, kinds[d.kind]))
+        data.add((node, RDFS.label, Literal(d.name)))
+        if d.description:
+            data.add((node, RDFS.comment, Literal(d.description)))
+        data.add((node, SUP.sourceUrl, Literal(d.url, datatype=XSD.anyURI)))
+        data.add((node, DCTERMS.source, SUP.Source_HANACloudDocs))
+        if d.kind == "sql_statement":
+            data.add((node, SUP.statementCategory, Literal(d.category)))
+            continue
+        data.add((node, SUP.viewName, Literal(d.name)))
+        for col, dtype, desc in d.columns:
+            c = SUP[f"Column_{slug(d.name)}__{slug(col)}"]
+            data.add((c, RDF.type, SUP.Column))
+            data.add((c, SUP.columnName, Literal(col)))
+            data.add((c, SUP.dataType, Literal(dtype or "unspecified")))
+            data.add((c, RDFS.label, Literal(f"{col} column of {d.name}")))
+            if desc:
+                data.add((c, RDFS.comment, Literal(desc)))
+            data.add((c, SUP.columnOf, node))
+    for d in docs:
+        for k in d.related:
+            data.add((by_key[d.key], SUP.seeAlso, by_key[k]))
+    return by_key
+
+
+def build_graph(records: list[Record], linker_factory=None, materialise_axioms: bool = True,
+                docs=None, view_linker_factory=None):
     onto = ontology()
     data = Graph()
     prov = Graph()
@@ -179,11 +220,46 @@ def build_graph(records: list[Record], linker_factory=None, materialise_axioms: 
         data.add((c, RDFS.label, Literal(labels[0] if labels else code)))
         data.add((c, SKOS.notation, Literal(code)))
 
-    report["inferred_triples"] = materialise(data, onto) if materialise_axioms else 0
+    # help documentation, then the cross-source link alert -> view
     report["entities"] = {"articles": len(articles), "alerts": len(alerts),
                           "components": len(components)}
+    if docs:
+        add_docs(data, docs)
+        views = {d.name: d.description for d in docs if d.kind != "sql_statement"}
+        report["entities"].update(
+            views=len(views), statements=sum(d.kind == "sql_statement" for d in docs),
+            columns=sum(len(d.columns) for d in docs))
+        if view_linker_factory is not None:
+            linker = view_linker_factory(views)
+            urls = {d.name: d.url for d in docs}
+            alert_srcs: dict[int, list[str]] = defaultdict(list)   # every article naming it
+            for ex in extractions:
+                for f in ex.facts:
+                    if f.p == "addresses":
+                        alert_srcs[f.o[1]].append(by_number[ex.number].url
+                                                  or PREVIEW.format(n=ex.number))
+            for n in sorted(alerts):
+                label = data.value(iri(("alert", n)), RDFS.label)
+                for view, score in linker.link(str(label)):
+                    s, o = iri(("alert", n)), SUP["View_" + slug(view)]
+                    data.add((s, SUP.investigatedWith, o))
+                    st = URIRef(SUP + "stmt_" + hashlib.sha1(
+                        f"{s}|investigatedWith|{o}|{linker.method}".encode()).hexdigest()[:16])
+                    prov.add((st, RDF.type, RDF.Statement))
+                    prov.add((st, RDF.subject, s)); prov.add((st, RDF.predicate, SUP.investigatedWith))
+                    prov.add((st, RDF.object, o))
+                    for src in alert_srcs.get(n, []):
+                        prov.add((st, PROV.wasDerivedFrom, URIRef(src)))
+                    prov.add((st, PROV.wasDerivedFrom, URIRef(urls[view])))
+                    prov.add((st, SUP.extractionMethod, Literal(f"{linker.method}-linker")))
+                    prov.add((st, SUP.confidence, Literal(round(score, 3), datatype=XSD.decimal)))
+                    report["facts"] += 1
+                    report["by_method"][f"{linker.method}-linker"] += 1
+                    report["by_relation"]["investigatedWith"] += 1
+
+    report["inferred_triples"] = materialise(data, onto) if materialise_axioms else 0
     full = onto + data
-    for p, ns in (("sup", SUP), ("ppms", PPMS), ("skos", SKOS), ("prov", PROV)):
+    for p, ns in (("sup", SUP), ("ppms", PPMS), ("skos", SKOS), ("prov", PROV), ("dct", DCTERMS)):
         full.bind(p, ns)
     return full, prov, report
 
@@ -203,8 +279,13 @@ def load_records(path: Path) -> list[Record]:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--parsed", default=str(ROOT / "data" / "parsed" / "articles.jsonl"))
+    ap.add_argument("--docs", default=str(ROOT / "data" / "sap-hana-cloud-hana-database"),
+                    help="Clone of SAP-docs/sap-hana-cloud-hana-database; 'none' to leave docs out.")
     ap.add_argument("--out", default=str(ROOT / "out"))
-    ap.add_argument("--linker", choices=["none", "hf"], default="none")
+    ap.add_argument("--linker", choices=["none", "hf"], default="none",
+                    help="Embedding linker for products and unnumbered alerts in articles.")
+    ap.add_argument("--view-linker", choices=["none", "lexical", "hf"], default="lexical",
+                    help="How alerts are linked to the views that investigate them.")
     ap.add_argument("--no-materialise", action="store_true")
     args = ap.parse_args()
 
@@ -213,10 +294,20 @@ def main() -> None:
     if args.linker == "hf":
         from link import EmbeddingLinker
         factory = lambda products, alerts: EmbeddingLinker(products, alerts)  # noqa: E731
-    graph, prov, report = build_graph(records, factory, not args.no_materialise)
+    docs = None
+    if args.docs != "none":
+        from docs import load
+        docs = load(Path(args.docs))
+    view_factory = None
+    if docs and args.view_linker != "none":
+        from link import ViewLinker
+        method = "lexical" if args.view_linker == "lexical" else "embedding"
+        view_factory = lambda views: ViewLinker(views, method=method)  # noqa: E731
+    graph, prov, report = build_graph(records, factory, not args.no_materialise,
+                                      docs=docs, view_linker_factory=view_factory)
     ok, n, text = validate(graph)
     report.update(shacl_conforms=ok, shacl_violations=n, triples=len(graph),
-                  linker=args.linker)
+                  linker=args.linker, view_linker=args.view_linker if docs else "none")
     out = Path(args.out); out.mkdir(parents=True, exist_ok=True)
     graph.serialize(out / "graph.ttl", format="turtle")
     prov.serialize(out / "provenance.ttl", format="turtle")
