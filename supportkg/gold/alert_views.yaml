@@ -11,17 +11,17 @@
 #
 # Alerts come from the SAP HANA platform alert checks; the views are those of
 # SAP HANA Cloud, which keeps the same monitoring views for these areas.
-status: draft
-annotator: ""
+status: checked
+annotator: "Moncef Bouhabel"
 alerts:
   1:  [M_HOST_RESOURCE_UTILIZATION]                 # Host physical memory usage
   2:  [M_DISK_USAGE, M_DISKS]                       # Disk usage
   3:  [M_SERVICES]                                  # Inactive services
   4:  [M_SERVICES]                                  # Restarted services
   5:  [M_HOST_RESOURCE_UTILIZATION, M_LOAD_HISTORY_HOST]   # Host CPU usage
-  10: [M_CONFIGURATION_PARAMETER_VALUES, M_DELTA_MERGE_STATISTICS]  # Delta merge (mergedog) configuration
+  10: [M_CONFIGURATION_PARAMETER_VALUES, M_DELTA_MERGE_STATISTICS, M_INIFILE_CONTENTS]  # Delta merge (mergedog) configuration
   12: [M_SERVICE_MEMORY]                            # Memory usage of name server
-  16: [M_CONFIGURATION_PARAMETER_VALUES]            # Lock wait timeout configuration
+  16: [M_CONFIGURATION_PARAMETER_VALUES, M_INIFILE_CONTENTS]            # Lock wait timeout configuration
   19: [M_CS_TABLES]                                 # Record count of delta storage of column-store tables
   25: [M_CONNECTIONS]                               # Check number of connections
   27: [M_CS_TABLES]                                 # Record count of column-store table partitions
@@ -44,5 +44,5 @@ alerts:
   58: [M_SQL_PLAN_CACHE_OVERVIEW, M_SQL_PLAN_CACHE] # Plan cache size
   62: [USERS, M_PASSWORD_POLICY]                    # Expiration of database user passwords
   65: [M_BACKUP_PROGRESS, M_BACKUP_CATALOG]         # Runtime of the log backups currently running
-  69: [M_CONFIGURATION_PARAMETER_VALUES]            # Enablement of automatic log backup
+  69: [M_CONFIGURATION_PARAMETER_VALUES, M_INIFILE_CONTENTS]            # Enablement of automatic log backup
   98: [M_CS_LOB_SPACE_RECLAIMS]                     # LOB garbage collection activity
