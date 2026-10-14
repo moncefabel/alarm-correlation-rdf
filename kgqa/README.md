@@ -317,18 +317,24 @@ in the predicted query and in the gold query (`kgqa/src/direction.py`):
 | Arm (3 runs) | Wrong answers | Direction inverted | Where |
 |---|---|---|---|
 | `react` | 24 | 1 | C03 |
+| `orchestrator_untyped` | 24 | 5 | C02 x2, C03 x3 |
+| `react_typed` | 17 | 6 | C02 x2, C03 x3, X01 |
 | `orchestrator` | 11 | 5 | C02 x2, C03 x3 |
 
 Every inverted query is a wrong answer, and inversions are almost half of the
-orchestrator's errors. The query is valid and uses only known IRIs, so neither
+orchestrator's errors. Plain ReAct inverts once in 96 answers; each of the
+three other arms inverts 5 or 6 times, with or without the instruction. The query is valid and uses only known IRIs, so neither
 the syntax check nor the symbolic gate can catch it; it returns zero rows
 without an error, and no repair is attempted. C03 ("what directly caused the
 latency spike?") is the clearest case: plain ReAct answers it in 2 runs of 3,
 every other arm in 0 of 3, including `orchestrator_untyped`, whose generation
 prompt differs from ReAct's only by two blank lines. The inversion is
-therefore not caused by the instruction; on one question this is suggestive,
-not conclusive (one-sided Fisher p ≈ 0.045), but it points at prompt
-brittleness rather than reasoning.
+therefore not caused by the instruction. Across C02 and C03 together, ReAct
+inverts in 1 of 6 answers and `orchestrator_untyped` in 5 of 6, with
+generation prompts two blank lines apart. On two questions and three runs this
+is suggestive, not conclusive, but it points at prompt brittleness rather than
+reasoning: a layout change that no one would review moves the model from one
+reading of the property to the other.
 
 K02 fails in 10 of 12 runs across the arms for a different, schema-level
 reason: `correlatedWith` is stored in one direction only

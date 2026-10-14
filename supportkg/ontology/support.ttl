@@ -1,0 +1,185 @@
+# support.ttl
+# Core ontology of the SAP support knowledge graph.
+#
+# It links four kinds of source: knowledge articles (SAP Notes and KBAs),
+# system alerts, application components and product lifecycle data (PPMS).
+# PPMS has its own vocabulary (ppms_standin.ttl); this file aligns with it
+# instead of redefining it, as a multi-source graph must.
+#
+# Design rules, from the kgqa error analysis:
+# - every directed relation has a named inverse (owl:inverseOf), so a question
+#   can be answered without reading a property against its direction
+#   (C02/C03 in kgqa failed on exactly that);
+# - a relation that has no direction is declared owl:SymmetricProperty (K02 in
+#   kgqa failed because correlatedWith was stored one way);
+# - names carry the direction in plain words ("addresses" / "addressedBy").
+#
+# Namespaces under example.org: this is a research prototype, not SAP's model.
+
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix ppms: <http://example.org/ppms#> .
+@prefix sup:  <http://example.org/sapsupport#> .
+
+<http://example.org/sapsupport> a owl:Ontology ;
+    rdfs:label "SAP support knowledge graph ontology (research prototype)" ;
+    rdfs:comment "Knowledge articles, system alerts, application components and product lifecycle data, aligned with a PPMS-shaped vocabulary." .
+
+# ------------------------------------------------------------------ classes
+
+sup:KnowledgeArticle a owl:Class ;
+    rdfs:label "Knowledge article" ;
+    rdfs:comment "A numbered document in SAP's support knowledge base: an SAP Note or a Knowledge Base Article." .
+
+sup:KBA a owl:Class ;
+    rdfs:subClassOf sup:KnowledgeArticle ;
+    rdfs:label "Knowledge Base Article" ;
+    rdfs:comment "A how-to or troubleshooting article." .
+
+sup:SAPNote a owl:Class ;
+    rdfs:subClassOf sup:KnowledgeArticle ;
+    rdfs:label "SAP Note" ;
+    rdfs:comment "An article describing a correction or a known issue." .
+
+sup:KBA owl:disjointWith sup:SAPNote .
+
+sup:Alert a owl:Class ;
+    rdfs:label "Alert" ;
+    rdfs:comment "A monitoring check of an SAP system that raises an alert when a threshold is crossed, identified by its alert number." .
+
+sup:ApplicationComponent a owl:Class ;
+    rdfs:subClassOf skos:Concept ;
+    rdfs:label "Application component" ;
+    rdfs:comment "A code of SAP's support component hierarchy, such as HAN-DB-MON, used to route a support case to the responsible team." .
+
+sup:Tool a owl:Class ;
+    rdfs:label "Tool" ;
+    rdfs:comment "An administration or diagnosis tool an article tells the reader to use." .
+
+sup:ProductItem a owl:Class ;
+    rdfs:label "Product item" ;
+    rdfs:comment "Anything an article can apply to: a product or one of its versions." .
+
+# Alignment with the PPMS vocabulary: PPMS products and versions are product
+# items in the sense of this ontology.
+ppms:Product        rdfs:subClassOf sup:ProductItem .
+ppms:ProductVersion rdfs:subClassOf sup:ProductItem .
+
+sup:KnowledgeArticle owl:disjointWith sup:Alert , sup:ApplicationComponent , sup:Tool , sup:ProductItem .
+sup:Alert owl:disjointWith sup:ApplicationComponent , sup:Tool , sup:ProductItem .
+
+# ------------------------------------------------- article and alert links
+
+sup:addresses a owl:ObjectProperty ;
+    rdfs:subPropertyOf sup:mentionsAlert ;
+    rdfs:domain sup:KnowledgeArticle ;
+    rdfs:range  sup:Alert ;
+    rdfs:label  "addresses alert" ;
+    rdfs:comment "The article is written to resolve this alert (its main subject)." .
+
+sup:addressedBy a owl:ObjectProperty ;
+    owl:inverseOf sup:addresses ;
+    rdfs:label "addressed by article" ;
+    rdfs:comment "The alert is resolved by this article." .
+
+sup:mentionsAlert a owl:ObjectProperty ;
+    rdfs:domain sup:KnowledgeArticle ;
+    rdfs:range  sup:Alert ;
+    rdfs:label  "mentions alert" ;
+    rdfs:comment "The article refers to this alert, as its subject or in passing." .
+
+sup:mentionedIn a owl:ObjectProperty ;
+    owl:inverseOf sup:mentionsAlert ;
+    rdfs:label "mentioned in article" .
+
+sup:cooccursWith a owl:ObjectProperty , owl:SymmetricProperty ;
+    rdfs:domain sup:Alert ;
+    rdfs:range  sup:Alert ;
+    rdfs:label  "co-occurs with alert" ;
+    rdfs:comment "An article reports the two alerts appearing together. Co-occurrence, not causation: neither is said to cause the other." .
+
+# ---------------------------------------------------- components and tools
+
+sup:assignedTo a owl:ObjectProperty ;
+    rdfs:domain sup:KnowledgeArticle ;
+    rdfs:range  sup:ApplicationComponent ;
+    rdfs:label  "assigned to component" ;
+    rdfs:comment "The article belongs to this application component." .
+
+sup:hasArticle a owl:ObjectProperty ;
+    owl:inverseOf sup:assignedTo ;
+    rdfs:label "has article" .
+
+sup:subComponentOf a owl:ObjectProperty , owl:TransitiveProperty ;
+    rdfs:subPropertyOf skos:broaderTransitive ;
+    rdfs:domain sup:ApplicationComponent ;
+    rdfs:range  sup:ApplicationComponent ;
+    rdfs:label  "sub-component of" ;
+    rdfs:comment "HAN-DB-MON is a sub-component of HAN-DB, which is a sub-component of HAN. Transitive." .
+
+sup:hasSubComponent a owl:ObjectProperty ;
+    owl:inverseOf sup:subComponentOf ;
+    rdfs:label "has sub-component" .
+
+sup:componentCode a owl:DatatypeProperty , owl:FunctionalProperty ;
+    rdfs:domain sup:ApplicationComponent ;
+    rdfs:range  xsd:string ;
+    rdfs:label  "component code" .
+
+sup:usesTool a owl:ObjectProperty ;
+    rdfs:domain sup:KnowledgeArticle ;
+    rdfs:range  sup:Tool ;
+    rdfs:label  "uses tool" ;
+    rdfs:comment "The article tells the reader to use this tool." .
+
+sup:toolUsedIn a owl:ObjectProperty ;
+    owl:inverseOf sup:usesTool ;
+    rdfs:label "tool used in article" .
+
+# ------------------------------------------------------ products, articles
+
+sup:appliesTo a owl:ObjectProperty ;
+    rdfs:domain sup:KnowledgeArticle ;
+    rdfs:range  sup:ProductItem ;
+    rdfs:label  "applies to product" ;
+    rdfs:comment "The article is valid for this product or product version." .
+
+sup:hasApplicableArticle a owl:ObjectProperty ;
+    owl:inverseOf sup:appliesTo ;
+    rdfs:label "has applicable article" .
+
+sup:references a owl:ObjectProperty ;
+    rdfs:domain sup:KnowledgeArticle ;
+    rdfs:range  sup:KnowledgeArticle ;
+    rdfs:label  "references article" ;
+    rdfs:comment "The article cites another SAP Note or KBA by number." .
+
+sup:referencedBy a owl:ObjectProperty ;
+    owl:inverseOf sup:references ;
+    rdfs:label "referenced by article" .
+
+# ------------------------------------------------------------- data values
+
+sup:articleNumber a owl:DatatypeProperty , owl:FunctionalProperty ;
+    rdfs:domain sup:KnowledgeArticle ;
+    rdfs:range  xsd:string ;
+    rdfs:label  "article number" .
+
+sup:alertNumber a owl:DatatypeProperty , owl:FunctionalProperty ;
+    rdfs:domain sup:Alert ;
+    rdfs:range  xsd:integer ;
+    rdfs:label  "alert number" .
+
+sup:sourceUrl a owl:DatatypeProperty ;
+    rdfs:range xsd:anyURI ;
+    rdfs:label "source URL" ;
+    rdfs:comment "Public page the facts about this entity were extracted from." .
+
+# Keys: one node per article number, per alert number, per component code.
+sup:KnowledgeArticle    owl:hasKey ( sup:articleNumber ) .
+sup:Alert               owl:hasKey ( sup:alertNumber ) .
+sup:ApplicationComponent owl:hasKey ( sup:componentCode ) .

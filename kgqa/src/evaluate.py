@@ -80,6 +80,18 @@ def make_llm(model: str = "gpt-4o", seed: int | None = None,
         extra["seed"] = seed
     if reasoning_effort:
         extra["reasoning_effort"] = reasoning_effort
+    # Provider-specific fields that are not part of the OpenAI API, as JSON.
+    # OpenRouter, for instance, pins the serving provider and the reasoning
+    # effort this way: LLM_EXTRA_BODY='{"provider": {"order": ["groq"],
+    # "allow_fallbacks": false}, "reasoning": {"effort": "low"}}'
+    body = json.loads(os.environ["LLM_EXTRA_BODY"]) if os.environ.get("LLM_EXTRA_BODY") else None
+    if body:
+        print(f"  [llm] extra request fields: {json.dumps(body)}", flush=True)
+
+    # temperature 0 for reproducibility. Some models refuse anything below 1
+    # (recent Claude models on the OpenAI-compatible endpoint); the request is
+    # then retried at the provider's default, and that is announced.
+    sampling: dict = {"temperature": 0}
 
     usage = {"prompt": 0, "completion": 0, "total": 0}
 
@@ -95,7 +107,8 @@ def make_llm(model: str = "gpt-4o", seed: int | None = None,
         for attempt in range(max_retries + 1):
             try:
                 return client.chat.completions.create(
-                    model=model, temperature=0, messages=build(system, user), **extra)
+                    model=model, messages=build(system, user),
+                    extra_body=body, **sampling, **extra)
             except transient as exc:
                 if attempt == max_retries:
                     raise
@@ -118,7 +131,11 @@ def make_llm(model: str = "gpt-4o", seed: int | None = None,
             # the user turn. Both arms call this same function, so whatever is
             # adapted is adapted identically for both topologies.
             msg = str(exc).lower()
-            if not merge_system[0] and ("system" in msg or "developer instruction" in msg):
+            if sampling and "temperature" in msg:
+                print(f"  [llm] provider rejected temperature 0: {exc}. "
+                      "Using the provider's default temperature.")
+                sampling.clear()
+            elif not merge_system[0] and ("system" in msg or "developer instruction" in msg):
                 print(f"  [llm] provider rejected the system role: {exc}. "
                       "Prepending instructions to the user turn.")
                 merge_system[0] = True

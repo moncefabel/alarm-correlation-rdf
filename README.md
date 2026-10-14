@@ -134,6 +134,24 @@ the control flow differs, so the comparison isolates the topology.
   traverse a causal property the wrong way round, which no symbolic check
   catches. Details and limits in [`kgqa/README.md`](kgqa/README.md#results)
 
+### 5. SAP support knowledge graph ([`supportkg/`](supportkg/))
+The same question at enterprise scale needs the graph to be built, not written by
+hand. `supportkg` builds a multi-source support knowledge graph from public SAP
+material: knowledge-article previews (the "How to handle HANA Alert N" series and
+related notes), application component codes, and a PPMS-shaped product slice
+(ProductLine, Product, ProductVersion, SoftwareComponent, SupportPackage; a
+hand-written stand-in, since PPMS is internal).
+
+- OWL ontology with a named inverse for every directed relation and a symmetric
+  co-occurrence relation, the two fixes the kgqa error analysis points to
+- extraction with spaCy (custom tokenizer rule, EntityRuler built from the
+  ontology's labels) and an optional Hugging Face embedding linker
+- entity resolution on article numbers, alert numbers and component codes;
+  statement-level PROV-O provenance; SHACL validation
+- collector that respects robots.txt and keeps SAP's texts out of the repository
+- extraction scored per relation against hand annotations; the graph loads into
+  Fuseki for the kgqa agents. Details in [`supportkg/README.md`](supportkg/README.md)
+
 ## Results summary
 
 | Capability | What it shows |
@@ -206,6 +224,7 @@ alarm-correlation-rdf/
 │   └── causal_reasoning.png
 ├── README.md
 ├── kgqa/                           # NL -> SPARQL agents, benchmark, tests
+├── supportkg/                      # SAP support KG: ontology, extraction, provenance, SHACL
 ├── RESEARCH_NOTES.md
 └── requirements.txt
 ```

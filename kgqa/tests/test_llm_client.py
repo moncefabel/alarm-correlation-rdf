@@ -36,7 +36,8 @@ def _completion(content: str) -> bytes:
 class FakeProvider:
     def __init__(self, rate_limit_first: int = 0, reject_seed: bool = False,
                  reject_system: bool = False, answer: str = "SELECT ?a WHERE { ?a ?p ?o }",
-                 slow_first: float = 0.0):
+                 slow_first: float = 0.0, reject_low_temperature: bool = False):
+        self.reject_low_temperature = reject_low_temperature
         self.answer = answer
         self.slow_first = slow_first
         self.rate_limit_first = rate_limit_first
@@ -61,6 +62,10 @@ class FakeProvider:
                         m["role"] == "system" for m in body["messages"]):
                     self._send(400, json.dumps({"error": {
                         "message": "Developer instruction is not enabled for models/gemma",
+                        "type": "invalid_request_error"}}).encode())
+                elif provider.reject_low_temperature and body.get("temperature", 1) < 1:
+                    self._send(400, json.dumps({"error": {
+                        "message": "temperature: values below 1 are not supported for this model",
                         "type": "invalid_request_error"}}).encode())
                 elif provider.reject_seed and "seed" in body:
                     self._send(400, json.dumps({"error": {
@@ -190,3 +195,33 @@ def test_timeout_is_retried_and_announced(serve, capsys):
     assert out.startswith("SELECT")
     assert len(p.bodies) == 2
     assert "timeout after 0s; retry 1/2" in capsys.readouterr().out
+
+
+def test_provider_specific_fields_are_sent_from_the_environment(serve, monkeypatch):
+    # OpenRouter: pin the serving provider and set the reasoning effort
+    monkeypatch.setenv("LLM_EXTRA_BODY", '{"provider": {"order": ["groq"], "allow_fallbacks": false}, '
+                                         '"reasoning": {"effort": "low"}}')
+    p = serve(FakeProvider())
+    make_llm("openai/gpt-oss-120b", seed=0)("sys", "user")
+    body = p.bodies[0]
+    assert body["provider"] == {"order": ["groq"], "allow_fallbacks": False}
+    assert body["reasoning"] == {"effort": "low"} and body["seed"] == 0
+
+
+def test_no_extra_fields_by_default(serve, monkeypatch):
+    monkeypatch.delenv("LLM_EXTRA_BODY", raising=False)
+    p = serve(FakeProvider())
+    make_llm("openai/gpt-oss-120b")("sys", "user")
+    assert "provider" not in p.bodies[0] and "reasoning" not in p.bodies[0]
+
+
+def test_model_refusing_temperature_zero_runs_at_its_default(serve, capsys):
+    # recent Claude models on the OpenAI-compatible endpoint
+    p = serve(FakeProvider(reject_low_temperature=True))
+    llm = make_llm("claude-haiku-5-5", seed=0)
+    assert llm("sys", "user").startswith("SELECT")
+    assert p.bodies[0]["temperature"] == 0 and "temperature" not in p.bodies[-1]
+    assert p.bodies[-1]["seed"] == 0                  # other settings are kept
+    llm("sys", "again")
+    assert "temperature" not in p.bodies[-1]          # decided once, not per call
+    assert "rejected temperature 0" in capsys.readouterr().out

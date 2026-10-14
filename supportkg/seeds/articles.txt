@@ -1,0 +1,50 @@
+# Seed list of public SAP knowledge-article previews.
+# One number per line; text after '#' is ignored. Titles are as listed by web
+# search on 2026-10-14, kept as a reminder of what each page is about.
+#
+# Backbone: the "How to handle HANA Alert N" series, one KBA per SAP HANA
+# alert check. Title spellings vary on purpose in the source ("How-To:
+# Handle", "Handle HANA Alert 69", "alert 36", "Alert 37 - "), which the
+# extractor must cope with.
+
+1898317   # How to handle HANA Alert 1: Host physical memory usage
+1900643   # How to handle HANA Alert 2: Disk usage
+1902033   # How to handle HANA Alert 3: Inactive Services
+1909660   # How to handle HANA Alert 4: Restarted services
+1909670   # How to handle HANA Alert 5: Host CPU Usage
+1909641   # How to handle HANA Alert 10: Delta Merge (mergedog) Configuration
+1977101   # How to handle HANA Alert 12: Memory usage of name server
+1909707   # How to handle HANA Alert 16: Lock Wait Timeout Configuration
+1909742   # How to handle HANA Alert 19: Record Count of Delta Storage of Column-Store Tables
+1910159   # How to handle HANA Alert 25: Check number of connections
+1910188   # How to handle HANA Alert 27: Record count of column-store table partitions
+1977314   # How to handle HANA Alert 29: Size of delta storage of column-store tables
+1899480   # How to handle HANA Alert 31: License expiry
+1900682   # How to handle HANA Alert 34: Unavailable Volumes
+1900728   # How to handle HANA Alert 35: Existence of Data Backup
+1900795   # How to handle HANA alert 36: Status of Most Recent Data Backup
+1900730   # How to handle HANA Alert 37 - Age of most recent data backup
+1900788   # How to handle HANA Alert 38: Status of Most Recent Log Backup
+1977268   # How to handle HANA Alert 40: Total memory usage of column-store tables
+1900261   # How to handle HANA Alert 42: Long-Running Cursors
+1900257   # How to handle HANA Alert 43: Memory Usage of Services
+2079396   # How to handle HANA Alert 49: long-running blocking transaction
+1977162   # How-To: Handle HANA Alert 50: Number of Diagnosis files
+1977208   # How to handle HANA Alert 51: Size of diagnosis files
+1977242   # How to handle HANA Alert 53: Pagedump files
+1977220   # How to handle HANA Alert 54: Savepoint Duration
+1977207   # How to handle HANA Alert 55: Columnstore unloads
+1977253   # How to handle HANA Alert 58: Plan Cache Size
+2082406   # How to handle HANA Alert 62: Expiration of database user passwords
+2081845   # How to handle HANA Alert 65: Runtime of the log backups currently running
+2081360   # Handle HANA Alert 69: Enablement of automatic log backup
+3462032   # How to handle HANA Alert 98: LOB garbage collection activity
+
+# Around the series: overviews, SAP HANA Cloud, support process
+2445867   # How-To: Interpreting and Resolving SAP HANA Alerts
+1840954   # Alerts related to HANA memory consumption
+3310156   # Alert 25 not providing the expected result in SAP HANA Cloud
+2326040   # E-mail Notification Alerts for HANA - How To
+2439125   # Basic SAP HANA Support Question Catalog
+3301980   # Application with an outdated SAP HANA Client is connecting to SAP HANA Cloud instance
+3363209   # Hana Cloud QRC upgrade

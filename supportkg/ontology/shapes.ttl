@@ -1,0 +1,86 @@
+# shapes.ttl
+# SHACL shapes: closed-world quality checks on the extracted graph.
+# OWL in support.ttl says what follows from the data; these shapes say what
+# the data must look like, and report every node that does not.
+
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix ppms: <http://example.org/ppms#> .
+@prefix sup:  <http://example.org/sapsupport#> .
+
+sup:ArticleShape a sh:NodeShape ;
+    sh:targetClass sup:KnowledgeArticle ;
+    sh:property [
+        sh:path sup:articleNumber ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[0-9]{6,7}$" ;
+        sh:message "An article has exactly one 6 or 7 digit number." ] ;
+    sh:property [
+        sh:path rdfs:label ;
+        sh:minCount 1 ;
+        sh:message "An article has a title." ] ;
+    sh:property [
+        sh:path sup:sourceUrl ;
+        sh:minCount 1 ;
+        sh:message "Every collected article records the page it came from." ] ;
+    sh:property [
+        sh:path sup:assignedTo ;
+        sh:class sup:ApplicationComponent ] ;
+    sh:property [
+        sh:path sup:appliesTo ;
+        sh:class sup:ProductItem ] ;
+    sh:property [
+        sh:path sup:mentionsAlert ;
+        sh:class sup:Alert ] ;
+    sh:property [
+        sh:path sup:addresses ;
+        sh:class sup:Alert ;
+        sh:maxCount 1 ;
+        sh:message "An article addresses at most one alert as its main subject." ] ;
+    sh:property [
+        sh:path sup:references ;
+        sh:class sup:KnowledgeArticle ] .
+
+sup:AlertShape a sh:NodeShape ;
+    sh:targetClass sup:Alert ;
+    sh:property [
+        sh:path sup:alertNumber ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 0 ; sh:maxInclusive 9999 ] ;
+    sh:property [
+        sh:path rdfs:label ;
+        sh:minCount 1 ;
+        sh:message "An alert has a name." ] .
+
+sup:ComponentShape a sh:NodeShape ;
+    sh:targetClass sup:ApplicationComponent ;
+    sh:property [
+        sh:path sup:componentCode ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:pattern "^[A-Z][A-Z0-9]{1,5}(-[A-Z0-9]{1,8})*$" ;
+        sh:message "A component code looks like HAN-DB-MON." ] ;
+    sh:property [
+        sh:path sup:subComponentOf ;
+        sh:class sup:ApplicationComponent ] .
+
+sup:ProductVersionShape a sh:NodeShape ;
+    sh:targetClass ppms:ProductVersion ;
+    sh:property [
+        sh:path ppms:versionOf ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:class ppms:Product ] .
+
+sup:SupportPackageShape a sh:NodeShape ;
+    sh:targetClass ppms:SupportPackage ;
+    sh:property [
+        sh:path ppms:supportPackageOf ;
+        sh:minCount 1 ;
+        sh:class ppms:SoftwareComponent ] ;
+    sh:property [
+        sh:path ppms:spsNumber ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:integer ] .

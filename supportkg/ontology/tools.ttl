@@ -1,0 +1,37 @@
+# tools.ttl
+# Hand-curated list of SAP HANA administration and diagnosis tools, used as a
+# gazetteer by the extractor (an article "uses" a tool when it names it).
+# Generic, publicly known tool names; each entry lists the spellings matched.
+
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix sup:  <http://example.org/sapsupport#> .
+
+sup:Tool_HANA_Studio a sup:Tool ;
+    rdfs:label "SAP HANA studio" ;
+    skos:altLabel "HANA Studio" , "SAP HANA Studio" .
+
+sup:Tool_HANA_Cockpit a sup:Tool ;
+    rdfs:label "SAP HANA cockpit" ;
+    skos:altLabel "HANA cockpit" , "SAP HANA Cockpit" .
+
+sup:Tool_HANA_Cloud_Central a sup:Tool ;
+    rdfs:label "SAP HANA Cloud Central" ;
+    skos:altLabel "HANA Cloud Central" .
+
+sup:Tool_DBACOCKPIT a sup:Tool ;
+    rdfs:label "DBACOCKPIT" ;
+    rdfs:comment "Database administration transaction in SAP systems." ;
+    skos:altLabel "transaction DBACOCKPIT" , "DBA Cockpit" .
+
+sup:Tool_Solution_Manager a sup:Tool ;
+    rdfs:label "SAP Solution Manager" ;
+    skos:altLabel "Solution Manager" , "SolMan" .
+
+sup:Tool_hdbcons a sup:Tool ;
+    rdfs:label "hdbcons" ;
+    rdfs:comment "SAP HANA database management console." .
+
+sup:Tool_hdbsql a sup:Tool ;
+    rdfs:label "hdbsql" ;
+    rdfs:comment "SAP HANA command-line SQL client." .

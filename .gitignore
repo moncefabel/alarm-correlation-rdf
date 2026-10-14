@@ -216,3 +216,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# supportkg: raw SAP pages and parsed text stay local
+supportkg/data/

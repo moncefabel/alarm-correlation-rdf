@@ -1,0 +1,113 @@
+# ppms_standin.ttl
+# A PPMS-SHAPED STAND-IN, NOT PPMS DATA.
+#
+# PPMS is SAP's internal product and lifecycle master. Its class names
+# (ProductLine, Product, ProductVersion, SoftwareComponent, SupportPackage)
+# are those cited in the PhD posting; the instances below are a small slice
+# for SAP HANA written by hand from publicly known product names, so that the
+# graph has a product backbone to link articles to. No lifecycle dates are
+# given: they would need checking against SAP's official sources.
+#
+# Kept in its own namespace on purpose: in the real setting PPMS is a separate
+# source with its own model, and support.ttl aligns with it.
+
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix ppms: <http://example.org/ppms#> .
+
+# ------------------------------------------------------------------ classes
+
+ppms:ProductLine       a owl:Class ; rdfs:label "Product line" .
+ppms:Product           a owl:Class ; rdfs:label "Product" .
+ppms:ProductVersion    a owl:Class ; rdfs:label "Product version" .
+ppms:SoftwareComponent a owl:Class ; rdfs:label "Software component" ;
+    rdfs:comment "A technical building block shipped as part of product versions." .
+ppms:SupportPackage    a owl:Class ; rdfs:label "Support package" ;
+    rdfs:comment "A numbered patch level of a software component (for SAP HANA: a support package stack, SPS)." .
+
+[] a owl:AllDisjointClasses ;
+   owl:members ( ppms:ProductLine ppms:Product ppms:ProductVersion ppms:SoftwareComponent ppms:SupportPackage ) .
+
+# --------------------------------------------------------------- properties
+
+ppms:inProductLine a owl:ObjectProperty ;
+    rdfs:domain ppms:Product ; rdfs:range ppms:ProductLine ;
+    rdfs:label "in product line" .
+ppms:lineHasProduct a owl:ObjectProperty ; owl:inverseOf ppms:inProductLine ;
+    rdfs:label "product line has product" .
+
+ppms:versionOf a owl:ObjectProperty ;
+    rdfs:domain ppms:ProductVersion ; rdfs:range ppms:Product ;
+    rdfs:label "version of product" .
+ppms:hasVersion a owl:ObjectProperty ; owl:inverseOf ppms:versionOf ;
+    rdfs:label "has version" .
+
+ppms:includesComponent a owl:ObjectProperty ;
+    rdfs:domain ppms:ProductVersion ; rdfs:range ppms:SoftwareComponent ;
+    rdfs:label "includes software component" .
+ppms:includedIn a owl:ObjectProperty ; owl:inverseOf ppms:includesComponent ;
+    rdfs:label "software component included in" .
+
+ppms:supportPackageOf a owl:ObjectProperty ;
+    rdfs:domain ppms:SupportPackage ; rdfs:range ppms:SoftwareComponent ;
+    rdfs:label "support package of" .
+ppms:hasSupportPackage a owl:ObjectProperty ; owl:inverseOf ppms:supportPackageOf ;
+    rdfs:label "has support package" .
+
+ppms:spsNumber a owl:DatatypeProperty , owl:FunctionalProperty ;
+    rdfs:domain ppms:SupportPackage ; rdfs:range xsd:integer ;
+    rdfs:label "support package stack number" .
+
+# --------------------------------------------- stand-in slice: SAP HANA
+
+ppms:Line_SAP_HANA a ppms:ProductLine ;
+    rdfs:label "SAP HANA" .
+
+ppms:Product_HANA_Platform a ppms:Product ;
+    rdfs:label "SAP HANA, platform edition" ;
+    skos:altLabel "SAP HANA platform edition" , "SAP HANA Platform" , "SAP HANA Database" ;
+    ppms:inProductLine ppms:Line_SAP_HANA .
+
+ppms:Product_HANA_Cloud a ppms:Product ;
+    rdfs:label "SAP HANA Cloud" ;
+    skos:altLabel "SAP HANA Cloud, SAP HANA database" , "HANA Cloud" ;
+    ppms:inProductLine ppms:Line_SAP_HANA .
+
+ppms:PV_HANA_Platform_1_0 a ppms:ProductVersion ;
+    rdfs:label "SAP HANA 1.0, platform edition" ;
+    skos:altLabel "SAP HANA platform edition 1.0" , "SAP HANA 1.0" ;
+    ppms:versionOf ppms:Product_HANA_Platform ;
+    ppms:includesComponent ppms:SC_HANA_DB_1_0 .
+
+ppms:PV_HANA_Platform_2_0 a ppms:ProductVersion ;
+    rdfs:label "SAP HANA, platform edition 2.0" ;
+    skos:altLabel "SAP HANA platform edition 2.0" , "SAP HANA 2.0" , "SAP HANA PLATFORM EDITION 2.0" ;
+    ppms:versionOf ppms:Product_HANA_Platform ;
+    ppms:includesComponent ppms:SC_HANA_DB_2_0 , ppms:SC_HANA_CLIENT_2_0 .
+
+ppms:SC_HANA_DB_1_0 a ppms:SoftwareComponent ;
+    rdfs:label "SAP HANA DATABASE 1.0" .
+
+ppms:SC_HANA_DB_2_0 a ppms:SoftwareComponent ;
+    rdfs:label "SAP HANA DATABASE 2.0" .
+
+ppms:SC_HANA_CLIENT_2_0 a ppms:SoftwareComponent ;
+    rdfs:label "SAP HANA CLIENT 2.0" .
+
+ppms:SP_HANA_DB_2_0_SPS05 a ppms:SupportPackage ;
+    rdfs:label "SAP HANA DATABASE 2.0 SPS 05" ; skos:altLabel "SPS05" , "SPS 05" ;
+    ppms:spsNumber 5 ; ppms:supportPackageOf ppms:SC_HANA_DB_2_0 .
+
+ppms:SP_HANA_DB_2_0_SPS06 a ppms:SupportPackage ;
+    rdfs:label "SAP HANA DATABASE 2.0 SPS 06" ; skos:altLabel "SPS06" , "SPS 06" ;
+    ppms:spsNumber 6 ; ppms:supportPackageOf ppms:SC_HANA_DB_2_0 .
+
+ppms:SP_HANA_DB_2_0_SPS07 a ppms:SupportPackage ;
+    rdfs:label "SAP HANA DATABASE 2.0 SPS 07" ; skos:altLabel "SPS07" , "SPS 07" ;
+    ppms:spsNumber 7 ; ppms:supportPackageOf ppms:SC_HANA_DB_2_0 .
+
+ppms:SP_HANA_DB_2_0_SPS08 a ppms:SupportPackage ;
+    rdfs:label "SAP HANA DATABASE 2.0 SPS 08" ; skos:altLabel "SPS08" , "SPS 08" ;
+    ppms:spsNumber 8 ; ppms:supportPackageOf ppms:SC_HANA_DB_2_0 .
