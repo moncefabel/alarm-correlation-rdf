@@ -1,0 +1,29 @@
+{
+ "articles_collected": 39,
+ "facts": 129,
+ "by_method": {
+  "title-rule": 64,
+  "regex": 33,
+  "lexical-linker": 32
+ },
+ "by_relation": {
+  "addresses": 32,
+  "mentionsAlert": 65,
+  "investigatedWith": 32
+ },
+ "unlinked_products": {},
+ "entities": {
+  "articles": 39,
+  "alerts": 32,
+  "components": 0,
+  "views": 516,
+  "statements": 182,
+  "columns": 6490
+ },
+ "inferred_triples": 0,
+ "shacl_conforms": true,
+ "shacl_violations": 0,
+ "triples": 45885,
+ "linker": "none",
+ "view_linker": "lexical"
+}

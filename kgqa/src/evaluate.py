@@ -27,6 +27,7 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).parent))
 
+from domains import DOMAINS  # noqa: E402
 from agents import build_orchestrator, build_react, register_schema, run  # noqa: E402
 from graph_store import GraphStore, answer_set  # noqa: E402
 from schema_context import SchemaIndex  # noqa: E402
@@ -305,7 +306,8 @@ def evaluate(topology: str, questions: list[dict], schema: SchemaIndex,
         return round(stats.mean([r.get(k, 0) for r in rows]), 4) if rows else 0.0
 
     summary = {
-        "topology": topology, "flags": flags, "n": len(rows),
+        "topology": topology, "n": len(rows),
+        "flags": {k: getattr(v, "name", v) for k, v in flags.items()},
         "execution_accuracy": mean("exact"),        # best column / boolean read
         "strict_execution_accuracy": mean("strict_exact"),  # every projected value
         "answer_f1": mean("f1"),
@@ -358,8 +360,13 @@ def aggregate_dir(out: Path, topos: list[str], suffix: str = "") -> list[dict]:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--questions", default="kgqa/benchmark/questions.yaml")
-    ap.add_argument("--ontology", default="ontology/alarm_ontology.ttl")
+    ap.add_argument("--domain", default="alarms", choices=sorted(DOMAINS),
+                    help="Which graph the prompts describe. Sets the default "
+                         "--questions and --ontology too.")
+    ap.add_argument("--questions", default=None)
+    ap.add_argument("--ontology", default=None,
+                    help="Graph file (ontology plus data) loaded in memory, and "
+                         "read for the schema even when SPARQL_ENDPOINT is set.")
     ap.add_argument("--topology", default="both",
                     choices=["both", "ablation", "all", *TOPOLOGIES],
                     help="both: react and orchestrator. ablation: react_typed and "
@@ -383,8 +390,14 @@ def main() -> None:
                     help="Seconds to wait for one model answer before retrying.")
     ap.add_argument("--no-schema-retrieval", action="store_true",
                     help="Ablation: dump the full ontology instead of retrieving.")
-    ap.add_argument("--out", default="kgqa/results")
+    ap.add_argument("--out", default=None,
+                    help="Default kgqa/results, or kgqa/results_<domain> for another domain.")
     args = ap.parse_args()
+    domain = DOMAINS[args.domain]
+    args.questions = args.questions or domain.questions
+    args.ontology = args.ontology or domain.graph
+    args.out = args.out or ("kgqa/results" if domain.name == "alarms"
+                            else f"kgqa/results_{domain.name}")
 
     topos = {"both": ["react", "orchestrator"],
              "ablation": ["react_typed", "orchestrator_untyped"],
@@ -396,7 +409,10 @@ def main() -> None:
         print(json.dumps(final, indent=2))
         return
 
-    schema = SchemaIndex(args.ontology)
+    if os.environ.get("SPARQL_ENDPOINT") and args.ontology != domain.graph:
+        print(f"WARNING: SPARQL_ENDPOINT is set; queries go there, not to {args.ontology}. "
+              f"Unset it to run in memory.")
+    schema = SchemaIndex(args.ontology, retrieval=domain.retrieval)
     register_schema(schema)
     store = GraphStore(ttl_path=args.ontology)
     print(f"graph: {store.mode}\nschema: {len(schema.items)} items")
@@ -409,7 +425,7 @@ def main() -> None:
         questions = questions[:args.limit]
     print(f"questions: {len(questions)} | model: {args.model} | "
           f"endpoint: {os.environ.get('OPENAI_BASE_URL', 'OpenAI default')}")
-    flags = {"retrieve_schema": not args.no_schema_retrieval}
+    flags = {"retrieve_schema": not args.no_schema_retrieval, "domain": domain}
 
     Path(args.out).mkdir(parents=True, exist_ok=True)
     seeds = [args.seed] if args.seed is not None else list(range(args.runs))

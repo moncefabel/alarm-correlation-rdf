@@ -64,3 +64,11 @@ def test_comments_are_ignored():
 
 def test_every_gold_query_agrees_with_itself():
     assert all(inverted_entities(g, g) == [] for g in GOLD.values())
+
+
+def test_the_inverse_property_counts_the_right_way_round():
+    gold = GOLD["C03"]                    # ?c net:causallyLinkedTo net:Alarm_Latency
+    right = "SELECT ?c WHERE { net:Alarm_Latency net:causedBy ?c . }"
+    wrong = "SELECT ?c WHERE { ?c net:causedBy net:Alarm_Latency . }"
+    assert inverted_entities(right, gold) == []
+    assert inverted_entities(wrong, gold) == ["net:Alarm_Latency"]

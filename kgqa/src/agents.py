@@ -18,10 +18,11 @@ import os
 import re
 import time
 from dataclasses import dataclass, field
-from typing import Callable, Literal, TypedDict
+from typing import Callable, TypedDict
 
 from langgraph.graph import END, StateGraph
 
+from domains import ALARMS, Domain
 from graph_store import GraphStore, QueryResult
 from schema_context import SchemaIndex
 
@@ -34,18 +35,8 @@ LLM = Callable[[str, str], str]          # (system, user) -> completion
 # Shared primitives
 # --------------------------------------------------------------------------
 
-GEN_SYSTEM = """You write SPARQL 1.1 SELECT queries against an RDF knowledge graph.
-Rules:
-- Use ONLY the classes and properties given in the schema. Never invent a URI.
-- Always include the PREFIX declarations you use.
-- Return ONLY the query, no prose, no markdown fences.
-- For causal questions use the causal properties, not mere co-occurrence.
-- Scope: the graph describes network devices, alarms, incidents, attack patterns
-  and the causal links between alarms. Questions about root causes, where to
-  intervene, what a prevented or blocked alarm would have avoided, or which
-  alarm or device matters most ARE in scope: answer them from the causal links.
-- Return exactly OUT_OF_SCOPE only when the question is about something this
-  graph does not describe at all (general knowledge, another domain)."""
+# The alarm strings, kept under their old names. Other graphs pass a Domain.
+GEN_SYSTEM = ALARMS.gen_system
 
 REPAIR_SYSTEM = """You repair a SPARQL query that failed. Return ONLY the corrected query.
 Do not explain. Never invent URIs outside the provided schema."""
@@ -131,7 +122,7 @@ class Trace:
 
 class S(TypedDict, total=False):
     question: str
-    qtype: Literal["factual", "causal", "counterfactual", "out_of_scope"]
+    qtype: str            # one of the domain's classifier labels
     schema: str
     query: str
     result: QueryResult
@@ -146,24 +137,15 @@ class S(TypedDict, total=False):
 # Question typing, shared verbatim by every arm that uses it
 # --------------------------------------------------------------------------
 
-CLASSIFY_SYSTEM = ("Classify the question. Answer with exactly one word: "
-                   "factual, causal, counterfactual, or out_of_scope.")
-
-TYPE_HINTS = {
-    "causal": "This is a ROOT-CAUSE question. Traverse causal properties "
-              "transitively; do not rely on co-occurrence.",
-    "counterfactual": "This is a COUNTERFACTUAL question. Identify the "
-                      "downstream set that would not occur if the named "
-                      "node were removed or blocked.",
-}
+CLASSIFY_SYSTEM = ALARMS.classify_system
+TYPE_HINTS = ALARMS.hints
 
 
-def classify_question(llm: LLM, question: str) -> str:
-    out = llm(CLASSIFY_SYSTEM,
-              f"Graph domain: network alarms, incidents, causal dependencies.\n"
+def classify_question(llm: LLM, question: str, domain: Domain = ALARMS) -> str:
+    out = llm(domain.classify_system,
+              f"Graph domain: {domain.graph_line}\n"
               f"Question: {question}").strip().lower()
-    return next((t for t in ("counterfactual", "causal", "out_of_scope", "factual")
-                 if t in out), "factual")
+    return next((t for t in domain.types if t in out), domain.default_type)
 
 
 # --------------------------------------------------------------------------
@@ -171,7 +153,8 @@ def classify_question(llm: LLM, question: str) -> str:
 # --------------------------------------------------------------------------
 
 def build_react(llm: LLM, schema: SchemaIndex, store: GraphStore,
-                retrieve_schema: bool = True, typed_hints: bool = False):
+                retrieve_schema: bool = True, typed_hints: bool = False,
+                domain: Domain = ALARMS):
     """typed_hints=True is an ablation arm: ReAct receives the orchestrator's
     classification call and its type-specific instruction, nothing else. The
     loop, the absence of a symbolic gate and the refusal path are unchanged
@@ -179,7 +162,7 @@ def build_react(llm: LLM, schema: SchemaIndex, store: GraphStore,
     attributable to the instruction rather than to the orchestrated control
     flow."""
     def classify(s: S) -> S:
-        s["qtype"] = classify_question(llm, s["question"])
+        s["qtype"] = classify_question(llm, s["question"], domain)
         s["llm_calls"] = s.get("llm_calls", 0) + 1
         s.setdefault("steps", []).append("classify")
         return s
@@ -193,11 +176,11 @@ def build_react(llm: LLM, schema: SchemaIndex, store: GraphStore,
             # State is written in nodes only: LangGraph discards writes made
             # inside a conditional-edge function.
             s["repairs"] = s.get("repairs", 0) + 1
-        hint = TYPE_HINTS.get(s.get("qtype", ""), "") if typed_hints and not prior else ""
+        hint = domain.hints.get(s.get("qtype", ""), "") if typed_hints and not prior else ""
         user = (f"{schema.prefix_header()}\n\nSchema:\n{ctx}\n\n"
                 + (f"{hint}\n\n" if hint else "")
                 + f"Question: {s['question']}{prior}")
-        out = strip_fences(llm(GEN_SYSTEM if not prior else REPAIR_SYSTEM, user))
+        out = strip_fences(llm(domain.gen_system if not prior else REPAIR_SYSTEM, user))
         s["query"] = out
         s["schema"] = ctx
         s["llm_calls"] = s.get("llm_calls", 0) + 1
@@ -239,16 +222,16 @@ def build_react(llm: LLM, schema: SchemaIndex, store: GraphStore,
 
 def build_orchestrator(llm: LLM, schema: SchemaIndex, store: GraphStore,
                        retrieve_schema: bool = True, scope_check: bool = True,
-                       typed_hints: bool = True):
+                       typed_hints: bool = True, domain: Domain = ALARMS):
     """typed_hints=False is the mirror ablation arm: the full orchestrated flow
     (classification and early refusal, gate, refine) without the
     type-specific instruction."""
     def classify(s: S) -> S:
         s.setdefault("steps", []).append("classify")
         if not scope_check:
-            s["qtype"] = "factual"
+            s["qtype"] = domain.default_type
             return s
-        s["qtype"] = classify_question(llm, s["question"])
+        s["qtype"] = classify_question(llm, s["question"], domain)
         s["refused"] = s["qtype"] == "out_of_scope"
         s["llm_calls"] = s.get("llm_calls", 0) + 1
         return s
@@ -259,10 +242,10 @@ def build_orchestrator(llm: LLM, schema: SchemaIndex, store: GraphStore,
         return s
 
     def generate(s: S) -> S:
-        hint = TYPE_HINTS.get(s.get("qtype", "factual"), "") if typed_hints else ""
+        hint = domain.hints.get(s.get("qtype", domain.default_type), "") if typed_hints else ""
         user = (f"{schema.prefix_header()}\n\nSchema:\n{s['schema']}\n\n"
                 f"{hint}\n\nQuestion: {s['question']}")
-        s["query"] = strip_fences(llm(GEN_SYSTEM, user))
+        s["query"] = strip_fences(llm(domain.gen_system, user))
         s["llm_calls"] = s.get("llm_calls", 0) + 1
         s.setdefault("steps", []).append("generate")
         return s

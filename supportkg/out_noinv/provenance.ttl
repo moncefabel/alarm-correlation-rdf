@@ -1,0 +1,1069 @@
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix sup: <http://example.org/sapsupport#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+sup:stmt_04357201637ffa33 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "regex" ;
+    rdf:object sup:Alert_37 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1900730 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1900730> .
+
+sup:stmt_09497df5c1c92363 a rdf:Statement ;
+    sup:confidence 0.565 ;
+    sup:extractionMethod "lexical-linker" ;
+    rdf:object sup:View_M_SQL_PLAN_CACHE ;
+    rdf:predicate sup:investigatedWith ;
+    rdf:subject sup:Alert_58 ;
+    prov:wasDerivedFrom <https://github.com/SAP-docs/sap-hana-cloud-hana-database/blob/2bc2e9cb566e04a6985820ca332e9d595c55d3e9/docs/sql-ref/020-System-Views-Reference/022-Monitoring-Views/m-sql-plan-cache-system-view-20c57b8.md>,
+        <https://userapps.support.sap.com/sap/support/knowledge/en/1977253> .
+
+sup:stmt_095b518f97baab64 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "lexical-linker" ;
+    rdf:object sup:View_M_CONNECTIONS ;
+    rdf:predicate sup:investigatedWith ;
+    rdf:subject sup:Alert_25 ;
+    prov:wasDerivedFrom <https://github.com/SAP-docs/sap-hana-cloud-hana-database/blob/2bc2e9cb566e04a6985820ca332e9d595c55d3e9/docs/sql-ref/020-System-Views-Reference/022-Monitoring-Views/m-connections-system-view-20abcf1.md>,
+        <https://userapps.support.sap.com/sap/support/knowledge/en/1910159> .
+
+sup:stmt_0bef84e003d48a1c a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_2 ;
+    rdf:predicate sup:addresses ;
+    rdf:subject sup:Article_1900643 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1900643> .
+
+sup:stmt_0c52b3f63ff4555a a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_1 ;
+    rdf:predicate sup:addresses ;
+    rdf:subject sup:Article_1898317 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1898317> .
+
+sup:stmt_0fea56ef7fc035b9 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "regex" ;
+    rdf:object sup:Alert_25 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1910159 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1910159> .
+
+sup:stmt_1143866b67726fae a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_34 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1900682 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1900682> .
+
+sup:stmt_11a2965ba75b6ebd a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "regex" ;
+    rdf:object sup:Alert_2 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1900643 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1900643> .
+
+sup:stmt_12c31da9758081de a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_50 ;
+    rdf:predicate sup:addresses ;
+    rdf:subject sup:Article_1977162 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1977162> .
+
+sup:stmt_147f3dd60be6fb6c a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_31 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1899480 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1899480> .
+
+sup:stmt_176ec5e732c830eb a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "regex" ;
+    rdf:object sup:Alert_36 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1900795 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1900795> .
+
+sup:stmt_1b459c2cad3869a2 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "regex" ;
+    rdf:object sup:Alert_35 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1900728 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1900728> .
+
+sup:stmt_1ba007eea6019428 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_1 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1898317 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1898317> .
+
+sup:stmt_1f9d8b7b76e7c693 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "regex" ;
+    rdf:object sup:Alert_34 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1900682 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1900682> .
+
+sup:stmt_247ca22c10e24736 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_37 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1900730 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1900730> .
+
+sup:stmt_24e67bdbdfc43661 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_29 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1977314 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1977314> .
+
+sup:stmt_25ec8815cbe8cb5c a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_35 ;
+    rdf:predicate sup:addresses ;
+    rdf:subject sup:Article_1900728 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1900728> .
+
+sup:stmt_25f75366c0644d09 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "regex" ;
+    rdf:object sup:Alert_49 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_2079396 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/2079396> .
+
+sup:stmt_269d46abbbde57ba a rdf:Statement ;
+    sup:confidence 0.409 ;
+    sup:extractionMethod "lexical-linker" ;
+    rdf:object sup:View_M_BACKUP_SIZE_ESTIMATIONS ;
+    rdf:predicate sup:investigatedWith ;
+    rdf:subject sup:Alert_37 ;
+    prov:wasDerivedFrom <https://github.com/SAP-docs/sap-hana-cloud-hana-database/blob/2bc2e9cb566e04a6985820ca332e9d595c55d3e9/docs/sql-ref/020-System-Views-Reference/022-Monitoring-Views/m-backup-size-estimations-system-view-fc77a09.md>,
+        <https://userapps.support.sap.com/sap/support/knowledge/en/1900730> .
+
+sup:stmt_28365f6cd1e4c22a a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_27 ;
+    rdf:predicate sup:addresses ;
+    rdf:subject sup:Article_1910188 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1910188> .
+
+sup:stmt_28552f3792652c90 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_4 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1909660 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1909660> .
+
+sup:stmt_29e49b1ddaa962fc a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_51 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1977208 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1977208> .
+
+sup:stmt_2aeea8b390aaaa57 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_3 ;
+    rdf:predicate sup:addresses ;
+    rdf:subject sup:Article_1902033 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1902033> .
+
+sup:stmt_2cbfd0108e5dce7a a rdf:Statement ;
+    sup:confidence 0.45 ;
+    sup:extractionMethod "lexical-linker" ;
+    rdf:object sup:View_M_LOCK_WAITS_STATISTICS ;
+    rdf:predicate sup:investigatedWith ;
+    rdf:subject sup:Alert_16 ;
+    prov:wasDerivedFrom <https://github.com/SAP-docs/sap-hana-cloud-hana-database/blob/2bc2e9cb566e04a6985820ca332e9d595c55d3e9/docs/sql-ref/020-System-Views-Reference/022-Monitoring-Views/m-lock-waits-statistics-system-view-20b3bf6.md>,
+        <https://userapps.support.sap.com/sap/support/knowledge/en/1909707> .
+
+sup:stmt_2e76d23deded34bf a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "regex" ;
+    rdf:object sup:Alert_98 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_3462032 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/3462032> .
+
+sup:stmt_2eee8e0394682fe4 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_51 ;
+    rdf:predicate sup:addresses ;
+    rdf:subject sup:Article_1977208 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1977208> .
+
+sup:stmt_3198cedf5f9fe7ef a rdf:Statement ;
+    sup:confidence 0.604 ;
+    sup:extractionMethod "lexical-linker" ;
+    rdf:object sup:View_M_SERVICE_MEMORY ;
+    rdf:predicate sup:investigatedWith ;
+    rdf:subject sup:Alert_43 ;
+    prov:wasDerivedFrom <https://github.com/SAP-docs/sap-hana-cloud-hana-database/blob/2bc2e9cb566e04a6985820ca332e9d595c55d3e9/docs/sql-ref/020-System-Views-Reference/022-Monitoring-Views/m-service-memory-system-view-20bf33c.md>,
+        <https://userapps.support.sap.com/sap/support/knowledge/en/1900257> .
+
+sup:stmt_31d41cd6ff076f4c a rdf:Statement ;
+    sup:confidence 0.54 ;
+    sup:extractionMethod "lexical-linker" ;
+    rdf:object sup:View_M_BACKUP_CATALOG ;
+    rdf:predicate sup:investigatedWith ;
+    rdf:subject sup:Alert_38 ;
+    prov:wasDerivedFrom <https://github.com/SAP-docs/sap-hana-cloud-hana-database/blob/2bc2e9cb566e04a6985820ca332e9d595c55d3e9/docs/sql-ref/020-System-Views-Reference/022-Monitoring-Views/m-backup-catalog-system-view-20a8437.md>,
+        <https://userapps.support.sap.com/sap/support/knowledge/en/1900788> .
+
+sup:stmt_34123f5e40db1e1c a rdf:Statement ;
+    sup:confidence 0.529 ;
+    sup:extractionMethod "lexical-linker" ;
+    rdf:object sup:View_M_DELTA_MERGE_STATISTICS ;
+    rdf:predicate sup:investigatedWith ;
+    rdf:subject sup:Alert_10 ;
+    prov:wasDerivedFrom <https://github.com/SAP-docs/sap-hana-cloud-hana-database/blob/2bc2e9cb566e04a6985820ca332e9d595c55d3e9/docs/sql-ref/020-System-Views-Reference/022-Monitoring-Views/m-delta-merge-statistics-system-view-20aed3e.md>,
+        <https://userapps.support.sap.com/sap/support/knowledge/en/1909641> .
+
+sup:stmt_351c5a11a9c8e7a6 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "regex" ;
+    rdf:object sup:Alert_42 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1900261 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1900261> .
+
+sup:stmt_35b226ea89685720 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_10 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1909641 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1909641> .
+
+sup:stmt_363575117f4af4d8 a rdf:Statement ;
+    sup:confidence 0.42 ;
+    sup:extractionMethod "lexical-linker" ;
+    rdf:object sup:View_M_TABLE_PARTITION_STATISTICS ;
+    rdf:predicate sup:investigatedWith ;
+    rdf:subject sup:Alert_27 ;
+    prov:wasDerivedFrom <https://github.com/SAP-docs/sap-hana-cloud-hana-database/blob/2bc2e9cb566e04a6985820ca332e9d595c55d3e9/docs/sql-ref/020-System-Views-Reference/022-Monitoring-Views/m-table-partition-statistics-system-view-b825ba5.md>,
+        <https://userapps.support.sap.com/sap/support/knowledge/en/1910188> .
+
+sup:stmt_3739b03b775bcb5c a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "regex" ;
+    rdf:object sup:Alert_40 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1977268 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1977268> .
+
+sup:stmt_3d05d0577bc5e94f a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_53 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1977242 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1977242> .
+
+sup:stmt_3dfd09e2f1d8b333 a rdf:Statement ;
+    sup:confidence 0.443 ;
+    sup:extractionMethod "lexical-linker" ;
+    rdf:object sup:View_M_GARBAGE_COLLECTION_STATISTICS_RESET ;
+    rdf:predicate sup:investigatedWith ;
+    rdf:subject sup:Alert_98 ;
+    prov:wasDerivedFrom <https://github.com/SAP-docs/sap-hana-cloud-hana-database/blob/2bc2e9cb566e04a6985820ca332e9d595c55d3e9/docs/sql-ref/020-System-Views-Reference/022-Monitoring-Views/m-garbage-collection-statistics-reset-system-view-20b071a.md>,
+        <https://userapps.support.sap.com/sap/support/knowledge/en/3462032> .
+
+sup:stmt_3e0c0c2638bcb2cb a rdf:Statement ;
+    sup:confidence 0.802 ;
+    sup:extractionMethod "lexical-linker" ;
+    rdf:object sup:View_M_SERVICE_COMPONENT_MEMORY ;
+    rdf:predicate sup:investigatedWith ;
+    rdf:subject sup:Alert_43 ;
+    prov:wasDerivedFrom <https://github.com/SAP-docs/sap-hana-cloud-hana-database/blob/2bc2e9cb566e04a6985820ca332e9d595c55d3e9/docs/sql-ref/020-System-Views-Reference/022-Monitoring-Views/m-service-component-memory-system-view-20bed4f.md>,
+        <https://userapps.support.sap.com/sap/support/knowledge/en/1900257> .
+
+sup:stmt_3e7081d46f866cf7 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "lexical-linker" ;
+    rdf:object sup:View_APPLICATION_CONNECTION_HISTORY ;
+    rdf:predicate sup:investigatedWith ;
+    rdf:subject sup:Alert_25 ;
+    prov:wasDerivedFrom <https://github.com/SAP-docs/sap-hana-cloud-hana-database/blob/2bc2e9cb566e04a6985820ca332e9d595c55d3e9/docs/sql-ref/020-System-Views-Reference/021-System-Views/application-connection-history-system-view-f98cfab.md>,
+        <https://userapps.support.sap.com/sap/support/knowledge/en/1910159> .
+
+sup:stmt_413a3307e6fe8165 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "regex" ;
+    rdf:object sup:Alert_16 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1909707 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1909707> .
+
+sup:stmt_42d8186d9b989743 a rdf:Statement ;
+    sup:confidence 0.434 ;
+    sup:extractionMethod "lexical-linker" ;
+    rdf:object sup:View_M_LICENSES ;
+    rdf:predicate sup:investigatedWith ;
+    rdf:subject sup:Alert_31 ;
+    prov:wasDerivedFrom <https://github.com/SAP-docs/sap-hana-cloud-hana-database/blob/2bc2e9cb566e04a6985820ca332e9d595c55d3e9/docs/sql-ref/020-System-Views-Reference/022-Monitoring-Views/m-licenses-system-view-1d7e7f5.md>,
+        <https://userapps.support.sap.com/sap/support/knowledge/en/1899480> .
+
+sup:stmt_431951ecacac419d a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "regex" ;
+    rdf:object sup:Alert_58 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1977253 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1977253> .
+
+sup:stmt_44883dfb4c925342 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_34 ;
+    rdf:predicate sup:addresses ;
+    rdf:subject sup:Article_1900682 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1900682> .
+
+sup:stmt_4504d44a64498d60 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_65 ;
+    rdf:predicate sup:addresses ;
+    rdf:subject sup:Article_2081845 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/2081845> .
+
+sup:stmt_462f21d229491123 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_31 ;
+    rdf:predicate sup:addresses ;
+    rdf:subject sup:Article_1899480 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1899480> .
+
+sup:stmt_49a989e469537afc a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_69 ;
+    rdf:predicate sup:addresses ;
+    rdf:subject sup:Article_2081360 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/2081360> .
+
+sup:stmt_4b91070d6cee4957 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_40 ;
+    rdf:predicate sup:addresses ;
+    rdf:subject sup:Article_1977268 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1977268> .
+
+sup:stmt_50f6f54816ff9edd a rdf:Statement ;
+    sup:confidence 0.37 ;
+    sup:extractionMethod "lexical-linker" ;
+    rdf:object sup:View_M_BACKUP_CATALOG ;
+    rdf:predicate sup:investigatedWith ;
+    rdf:subject sup:Alert_65 ;
+    prov:wasDerivedFrom <https://github.com/SAP-docs/sap-hana-cloud-hana-database/blob/2bc2e9cb566e04a6985820ca332e9d595c55d3e9/docs/sql-ref/020-System-Views-Reference/022-Monitoring-Views/m-backup-catalog-system-view-20a8437.md>,
+        <https://userapps.support.sap.com/sap/support/knowledge/en/2081845> .
+
+sup:stmt_512b9345e5a4a0c0 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "regex" ;
+    rdf:object sup:Alert_3 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1902033 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1902033> .
+
+sup:stmt_5280d369af99aa06 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "regex" ;
+    rdf:object sup:Alert_1 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1898317 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1898317> .
+
+sup:stmt_52967c4c4659e97b a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_16 ;
+    rdf:predicate sup:addresses ;
+    rdf:subject sup:Article_1909707 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1909707> .
+
+sup:stmt_52d96a49167e8d46 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_36 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1900795 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1900795> .
+
+sup:stmt_54996215a0f33936 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_4 ;
+    rdf:predicate sup:addresses ;
+    rdf:subject sup:Article_1909660 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1909660> .
+
+sup:stmt_61eac832b967343f a rdf:Statement ;
+    sup:confidence 0.409 ;
+    sup:extractionMethod "lexical-linker" ;
+    rdf:object sup:View_M_BACKUP_SIZE_ESTIMATIONS ;
+    rdf:predicate sup:investigatedWith ;
+    rdf:subject sup:Alert_35 ;
+    prov:wasDerivedFrom <https://github.com/SAP-docs/sap-hana-cloud-hana-database/blob/2bc2e9cb566e04a6985820ca332e9d595c55d3e9/docs/sql-ref/020-System-Views-Reference/022-Monitoring-Views/m-backup-size-estimations-system-view-fc77a09.md>,
+        <https://userapps.support.sap.com/sap/support/knowledge/en/1900728> .
+
+sup:stmt_628471586159ac27 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "regex" ;
+    rdf:object sup:Alert_29 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1977314 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1977314> .
+
+sup:stmt_64128d72a98c9f8d a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_38 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1900788 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1900788> .
+
+sup:stmt_64b207931ea727ac a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "regex" ;
+    rdf:object sup:Alert_69 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_2081360 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/2081360> .
+
+sup:stmt_6895fea3749632a0 a rdf:Statement ;
+    sup:confidence 0.805 ;
+    sup:extractionMethod "lexical-linker" ;
+    rdf:object sup:View_M_BACKUP_CATALOG ;
+    rdf:predicate sup:investigatedWith ;
+    rdf:subject sup:Alert_36 ;
+    prov:wasDerivedFrom <https://github.com/SAP-docs/sap-hana-cloud-hana-database/blob/2bc2e9cb566e04a6985820ca332e9d595c55d3e9/docs/sql-ref/020-System-Views-Reference/022-Monitoring-Views/m-backup-catalog-system-view-20a8437.md>,
+        <https://userapps.support.sap.com/sap/support/knowledge/en/1900795> .
+
+sup:stmt_6920d6d16ab11014 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "regex" ;
+    rdf:object sup:Alert_38 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1900788 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1900788> .
+
+sup:stmt_6d4231c6069930ca a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_35 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1900728 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1900728> .
+
+sup:stmt_7081b4550df52af1 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_58 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1977253 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1977253> .
+
+sup:stmt_70fc9143d47b4254 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_3 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1902033 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1902033> .
+
+sup:stmt_7143ac1ea88d11a2 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_19 ;
+    rdf:predicate sup:addresses ;
+    rdf:subject sup:Article_1909742 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1909742> .
+
+sup:stmt_724afbe600cff064 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_5 ;
+    rdf:predicate sup:addresses ;
+    rdf:subject sup:Article_1909670 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1909670> .
+
+sup:stmt_737eb28b3b0c5c71 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "regex" ;
+    rdf:object sup:Alert_4 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1909660 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1909660> .
+
+sup:stmt_73e98adcacfd4f35 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_25 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1910159 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1910159> .
+
+sup:stmt_741cfa32ec875cef a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_54 ;
+    rdf:predicate sup:addresses ;
+    rdf:subject sup:Article_1977220 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1977220> .
+
+sup:stmt_742e0ce422666f25 a rdf:Statement ;
+    sup:confidence 0.457 ;
+    sup:extractionMethod "lexical-linker" ;
+    rdf:object sup:View_M_CS_UNLOADS ;
+    rdf:predicate sup:investigatedWith ;
+    rdf:subject sup:Alert_55 ;
+    prov:wasDerivedFrom <https://github.com/SAP-docs/sap-hana-cloud-hana-database/blob/2bc2e9cb566e04a6985820ca332e9d595c55d3e9/docs/sql-ref/020-System-Views-Reference/022-Monitoring-Views/m-cs-unloads-system-view-20ad86c.md>,
+        <https://userapps.support.sap.com/sap/support/knowledge/en/1977207> .
+
+sup:stmt_79f2e8f9667a647d a rdf:Statement ;
+    sup:confidence 0.471 ;
+    sup:extractionMethod "lexical-linker" ;
+    rdf:object sup:View_M_REMOTE_SUBSCRIPTION_ROLLBACK_SAVEPOINT_CONTAINERS ;
+    rdf:predicate sup:investigatedWith ;
+    rdf:subject sup:Alert_54 ;
+    prov:wasDerivedFrom <https://github.com/SAP-docs/sap-hana-cloud-hana-database/blob/2bc2e9cb566e04a6985820ca332e9d595c55d3e9/docs/sql-ref/020-System-Views-Reference/022-Monitoring-Views/m-remote-subscription-rollback-savepoint-containers-system-view-0217719.md>,
+        <https://userapps.support.sap.com/sap/support/knowledge/en/1977220> .
+
+sup:stmt_79fba885e5608a77 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_58 ;
+    rdf:predicate sup:addresses ;
+    rdf:subject sup:Article_1977253 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1977253> .
+
+sup:stmt_7e12b86b50185128 a rdf:Statement ;
+    sup:confidence 0.497 ;
+    sup:extractionMethod "lexical-linker" ;
+    rdf:object sup:View_M_HOST_RESOURCE_UTILIZATION ;
+    rdf:predicate sup:investigatedWith ;
+    rdf:subject sup:Alert_5 ;
+    prov:wasDerivedFrom <https://github.com/SAP-docs/sap-hana-cloud-hana-database/blob/2bc2e9cb566e04a6985820ca332e9d595c55d3e9/docs/sql-ref/020-System-Views-Reference/022-Monitoring-Views/m-host-resource-utilization-system-view-20b1241.md>,
+        <https://userapps.support.sap.com/sap/support/knowledge/en/1909670> .
+
+sup:stmt_7e29a482e4c36cb6 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_50 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1977162 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1977162> .
+
+sup:stmt_8461f9eb90a6ae44 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_42 ;
+    rdf:predicate sup:addresses ;
+    rdf:subject sup:Article_1900261 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1900261> .
+
+sup:stmt_8483c8cb328d3829 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "regex" ;
+    rdf:object sup:Alert_10 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1909641 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1909641> .
+
+sup:stmt_885306665f12dadd a rdf:Statement ;
+    sup:confidence 0.409 ;
+    sup:extractionMethod "lexical-linker" ;
+    rdf:object sup:View_M_BACKUP_CATALOG ;
+    rdf:predicate sup:investigatedWith ;
+    rdf:subject sup:Alert_37 ;
+    prov:wasDerivedFrom <https://github.com/SAP-docs/sap-hana-cloud-hana-database/blob/2bc2e9cb566e04a6985820ca332e9d595c55d3e9/docs/sql-ref/020-System-Views-Reference/022-Monitoring-Views/m-backup-catalog-system-view-20a8437.md>,
+        <https://userapps.support.sap.com/sap/support/knowledge/en/1900730> .
+
+sup:stmt_8890beca538a3128 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_12 ;
+    rdf:predicate sup:addresses ;
+    rdf:subject sup:Article_1977101 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1977101> .
+
+sup:stmt_8a45e65be24f6be9 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_5 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1909670 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1909670> .
+
+sup:stmt_91b91f632f9aae4e a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "regex" ;
+    rdf:object sup:Alert_50 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1977162 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1977162> .
+
+sup:stmt_938d7a0ac43d1333 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_62 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_2082406 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/2082406> .
+
+sup:stmt_9af2a77e74e3fd9e a rdf:Statement ;
+    sup:confidence 0.424 ;
+    sup:extractionMethod "lexical-linker" ;
+    rdf:object sup:View_M_DISK_USAGE ;
+    rdf:predicate sup:investigatedWith ;
+    rdf:subject sup:Alert_5 ;
+    prov:wasDerivedFrom <https://github.com/SAP-docs/sap-hana-cloud-hana-database/blob/2bc2e9cb566e04a6985820ca332e9d595c55d3e9/docs/sql-ref/020-System-Views-Reference/022-Monitoring-Views/m-disk-usage-system-view-a2aac2e.md>,
+        <https://userapps.support.sap.com/sap/support/knowledge/en/1909670> .
+
+sup:stmt_9e8c636328cb85f3 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_54 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1977220 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1977220> .
+
+sup:stmt_a20fbfbe5201214c a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "regex" ;
+    rdf:object sup:Alert_62 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_2082406 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/2082406> .
+
+sup:stmt_a4695f3e06c417d4 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_29 ;
+    rdf:predicate sup:addresses ;
+    rdf:subject sup:Article_1977314 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1977314> .
+
+sup:stmt_a658c9a81e366da4 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "regex" ;
+    rdf:object sup:Alert_31 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1899480 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1899480> .
+
+sup:stmt_a87d5ec79df1f643 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_43 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1900257 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1900257> .
+
+sup:stmt_aafd526d5c84bf9d a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "regex" ;
+    rdf:object sup:Alert_53 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1977242 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1977242> .
+
+sup:stmt_ac28f7b7bc661a2c a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_42 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1900261 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1900261> .
+
+sup:stmt_ac3869d81c4e093b a rdf:Statement ;
+    sup:confidence 0.805 ;
+    sup:extractionMethod "lexical-linker" ;
+    rdf:object sup:View_M_BACKUP_SIZE_ESTIMATIONS ;
+    rdf:predicate sup:investigatedWith ;
+    rdf:subject sup:Alert_36 ;
+    prov:wasDerivedFrom <https://github.com/SAP-docs/sap-hana-cloud-hana-database/blob/2bc2e9cb566e04a6985820ca332e9d595c55d3e9/docs/sql-ref/020-System-Views-Reference/022-Monitoring-Views/m-backup-size-estimations-system-view-fc77a09.md>,
+        <https://userapps.support.sap.com/sap/support/knowledge/en/1900795> .
+
+sup:stmt_ad4e333449ec0a4a a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "regex" ;
+    rdf:object sup:Alert_51 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1977208 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1977208> .
+
+sup:stmt_af1532f6d0335b70 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_40 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1977268 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1977268> .
+
+sup:stmt_af22b39aab960b41 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "regex" ;
+    rdf:object sup:Alert_55 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1977207 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1977207> .
+
+sup:stmt_b17ac098bbe7581d a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "regex" ;
+    rdf:object sup:Alert_43 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1900257 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1900257> .
+
+sup:stmt_b1d418175d97a503 a rdf:Statement ;
+    sup:confidence 0.565 ;
+    sup:extractionMethod "lexical-linker" ;
+    rdf:object sup:View_M_SQL_PLAN_CACHE_AUTO_RECOMPILATION_STATISTICS ;
+    rdf:predicate sup:investigatedWith ;
+    rdf:subject sup:Alert_58 ;
+    prov:wasDerivedFrom <https://github.com/SAP-docs/sap-hana-cloud-hana-database/blob/2bc2e9cb566e04a6985820ca332e9d595c55d3e9/docs/sql-ref/020-System-Views-Reference/022-Monitoring-Views/m-sql-plan-cache-auto-recompilation-statistics-system-view-a3cfe60.md>,
+        <https://userapps.support.sap.com/sap/support/knowledge/en/1977253> .
+
+sup:stmt_b204eef1b068a506 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "lexical-linker" ;
+    rdf:object sup:View_M_DISK_USAGE ;
+    rdf:predicate sup:investigatedWith ;
+    rdf:subject sup:Alert_2 ;
+    prov:wasDerivedFrom <https://github.com/SAP-docs/sap-hana-cloud-hana-database/blob/2bc2e9cb566e04a6985820ca332e9d595c55d3e9/docs/sql-ref/020-System-Views-Reference/022-Monitoring-Views/m-disk-usage-system-view-a2aac2e.md>,
+        <https://userapps.support.sap.com/sap/support/knowledge/en/1900643> .
+
+sup:stmt_b32713b5593926b7 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_98 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_3462032 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/3462032> .
+
+sup:stmt_babab7a40b995ab7 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_37 ;
+    rdf:predicate sup:addresses ;
+    rdf:subject sup:Article_1900730 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1900730> .
+
+sup:stmt_bb5be1facf6efaae a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_55 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1977207 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1977207> .
+
+sup:stmt_bbef69db0d634b17 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_43 ;
+    rdf:predicate sup:addresses ;
+    rdf:subject sup:Article_1900257 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1900257> .
+
+sup:stmt_bc1f93089219d1b3 a rdf:Statement ;
+    sup:confidence 0.555 ;
+    sup:extractionMethod "lexical-linker" ;
+    rdf:object sup:View_M_DISKS ;
+    rdf:predicate sup:investigatedWith ;
+    rdf:subject sup:Alert_2 ;
+    prov:wasDerivedFrom <https://github.com/SAP-docs/sap-hana-cloud-hana-database/blob/2bc2e9cb566e04a6985820ca332e9d595c55d3e9/docs/sql-ref/020-System-Views-Reference/022-Monitoring-Views/m-disks-system-view-20aef7a.md>,
+        <https://userapps.support.sap.com/sap/support/knowledge/en/1900643> .
+
+sup:stmt_bc3fae2f488debca a rdf:Statement ;
+    sup:confidence 0.471 ;
+    sup:extractionMethod "lexical-linker" ;
+    rdf:object sup:View_M_SAVEPOINTS ;
+    rdf:predicate sup:investigatedWith ;
+    rdf:subject sup:Alert_54 ;
+    prov:wasDerivedFrom <https://github.com/SAP-docs/sap-hana-cloud-hana-database/blob/2bc2e9cb566e04a6985820ca332e9d595c55d3e9/docs/sql-ref/020-System-Views-Reference/022-Monitoring-Views/m-savepoints-system-view-20bdd30.md>,
+        <https://userapps.support.sap.com/sap/support/knowledge/en/1977220> .
+
+sup:stmt_bd4732778ee3f01c a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "regex" ;
+    rdf:object sup:Alert_54 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1977220 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1977220> .
+
+sup:stmt_be69edd1cf933507 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_2 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1900643 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1900643> .
+
+sup:stmt_bf18bd4c78487609 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_16 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1909707 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1909707> .
+
+sup:stmt_bf527fa7ca5788d8 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_19 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1909742 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1909742> .
+
+sup:stmt_c0b1e6330fc3182c a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_36 ;
+    rdf:predicate sup:addresses ;
+    rdf:subject sup:Article_1900795 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1900795> .
+
+sup:stmt_c4d49d63eeb7e654 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_12 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1977101 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1977101> .
+
+sup:stmt_c89cdd6909f23155 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_25 ;
+    rdf:predicate sup:addresses ;
+    rdf:subject sup:Article_1910159 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1910159> .
+
+sup:stmt_c8b80df3e2b1dbd8 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "regex" ;
+    rdf:object sup:Alert_65 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_2081845 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/2081845> .
+
+sup:stmt_ca5aca88b7013291 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "regex" ;
+    rdf:object sup:Alert_5 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1909670 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1909670> .
+
+sup:stmt_cdd213b5489a367e a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_65 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_2081845 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/2081845> .
+
+sup:stmt_ceaae597882010b5 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "regex" ;
+    rdf:object sup:Alert_19 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1909742 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1909742> .
+
+sup:stmt_d54b6881524c3bfe a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_49 ;
+    rdf:predicate sup:addresses ;
+    rdf:subject sup:Article_2079396 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/2079396> .
+
+sup:stmt_d5e1b726fde36cb2 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "regex" ;
+    rdf:object sup:Alert_12 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1977101 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1977101> .
+
+sup:stmt_d79869c8d9f8d32e a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_10 ;
+    rdf:predicate sup:addresses ;
+    rdf:subject sup:Article_1909641 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1909641> .
+
+sup:stmt_da6fb97af41f6e60 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_38 ;
+    rdf:predicate sup:addresses ;
+    rdf:subject sup:Article_1900788 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1900788> .
+
+sup:stmt_dc5aaaa6aa910c9b a rdf:Statement ;
+    sup:confidence 0.383 ;
+    sup:extractionMethod "lexical-linker" ;
+    rdf:object sup:View_M_DISK_USAGE ;
+    rdf:predicate sup:investigatedWith ;
+    rdf:subject sup:Alert_1 ;
+    prov:wasDerivedFrom <https://github.com/SAP-docs/sap-hana-cloud-hana-database/blob/2bc2e9cb566e04a6985820ca332e9d595c55d3e9/docs/sql-ref/020-System-Views-Reference/022-Monitoring-Views/m-disk-usage-system-view-a2aac2e.md>,
+        <https://userapps.support.sap.com/sap/support/knowledge/en/1898317> .
+
+sup:stmt_dd4ba5d1264c93af a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_49 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_2079396 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/2079396> .
+
+sup:stmt_dfecf54119a72b61 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "regex" ;
+    rdf:object sup:Alert_25 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_3310156 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/3310156> .
+
+sup:stmt_e04be5abd0fd2f2f a rdf:Statement ;
+    sup:confidence 0.54 ;
+    sup:extractionMethod "lexical-linker" ;
+    rdf:object sup:View_M_BACKUP_CATALOG_FILES ;
+    rdf:predicate sup:investigatedWith ;
+    rdf:subject sup:Alert_38 ;
+    prov:wasDerivedFrom <https://github.com/SAP-docs/sap-hana-cloud-hana-database/blob/2bc2e9cb566e04a6985820ca332e9d595c55d3e9/docs/sql-ref/020-System-Views-Reference/022-Monitoring-Views/m-backup-catalog-files-system-view-20a8100.md>,
+        <https://userapps.support.sap.com/sap/support/knowledge/en/1900788> .
+
+sup:stmt_e1304e5993845ad4 a rdf:Statement ;
+    sup:confidence 0.456 ;
+    sup:extractionMethod "lexical-linker" ;
+    rdf:object sup:View_M_EFFECTIVE_PASSWORD_POLICY ;
+    rdf:predicate sup:investigatedWith ;
+    rdf:subject sup:Alert_62 ;
+    prov:wasDerivedFrom <https://github.com/SAP-docs/sap-hana-cloud-hana-database/blob/2bc2e9cb566e04a6985820ca332e9d595c55d3e9/docs/sql-ref/020-System-Views-Reference/022-Monitoring-Views/m-effective-password-policy-system-view-388378c.md>,
+        <https://userapps.support.sap.com/sap/support/knowledge/en/2082406> .
+
+sup:stmt_e1705192ac708e38 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_53 ;
+    rdf:predicate sup:addresses ;
+    rdf:subject sup:Article_1977242 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1977242> .
+
+sup:stmt_e364a05f032691fa a rdf:Statement ;
+    sup:confidence 0.37 ;
+    sup:extractionMethod "lexical-linker" ;
+    rdf:object sup:View_M_BACKUP_CATALOG_FILES ;
+    rdf:predicate sup:investigatedWith ;
+    rdf:subject sup:Alert_65 ;
+    prov:wasDerivedFrom <https://github.com/SAP-docs/sap-hana-cloud-hana-database/blob/2bc2e9cb566e04a6985820ca332e9d595c55d3e9/docs/sql-ref/020-System-Views-Reference/022-Monitoring-Views/m-backup-catalog-files-system-view-20a8100.md>,
+        <https://userapps.support.sap.com/sap/support/knowledge/en/2081845> .
+
+sup:stmt_e69ef071cd8ce979 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_27 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1910188 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1910188> .
+
+sup:stmt_e741b19b3745bfd4 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "regex" ;
+    rdf:object sup:Alert_27 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_1910188 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1910188> .
+
+sup:stmt_e7f84070e31ce9c6 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_69 ;
+    rdf:predicate sup:mentionsAlert ;
+    rdf:subject sup:Article_2081360 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/2081360> .
+
+sup:stmt_eb949b2d9f2c8270 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_55 ;
+    rdf:predicate sup:addresses ;
+    rdf:subject sup:Article_1977207 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/1977207> .
+
+sup:stmt_f188b48b3e8287a8 a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_98 ;
+    rdf:predicate sup:addresses ;
+    rdf:subject sup:Article_3462032 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/3462032> .
+
+sup:stmt_f770285e8937de8c a rdf:Statement ;
+    sup:confidence 1.0 ;
+    sup:extractionMethod "title-rule" ;
+    rdf:object sup:Alert_62 ;
+    rdf:predicate sup:addresses ;
+    rdf:subject sup:Article_2082406 ;
+    prov:wasDerivedFrom <https://userapps.support.sap.com/sap/support/knowledge/en/2082406> .
+
+sup:stmt_f855cbab5324c402 a rdf:Statement ;
+    sup:confidence 0.409 ;
+    sup:extractionMethod "lexical-linker" ;
+    rdf:object sup:View_M_BACKUP_CATALOG ;
+    rdf:predicate sup:investigatedWith ;
+    rdf:subject sup:Alert_35 ;
+    prov:wasDerivedFrom <https://github.com/SAP-docs/sap-hana-cloud-hana-database/blob/2bc2e9cb566e04a6985820ca332e9d595c55d3e9/docs/sql-ref/020-System-Views-Reference/022-Monitoring-Views/m-backup-catalog-system-view-20a8437.md>,
+        <https://userapps.support.sap.com/sap/support/knowledge/en/1900728> .
+
+sup:stmt_fc94aaf693e31684 a rdf:Statement ;
+    sup:confidence 0.434 ;
+    sup:extractionMethod "lexical-linker" ;
+    rdf:object sup:View_M_LICENSE ;
+    rdf:predicate sup:investigatedWith ;
+    rdf:subject sup:Alert_31 ;
+    prov:wasDerivedFrom <https://github.com/SAP-docs/sap-hana-cloud-hana-database/blob/2bc2e9cb566e04a6985820ca332e9d595c55d3e9/docs/sql-ref/020-System-Views-Reference/022-Monitoring-Views/m-license-system-view-20b2007.md>,
+        <https://userapps.support.sap.com/sap/support/knowledge/en/1899480> .
+
+sup:stmt_fff05b5c07482217 a rdf:Statement ;
+    sup:confidence 0.443 ;
+    sup:extractionMethod "lexical-linker" ;
+    rdf:object sup:View_M_GARBAGE_COLLECTION_STATISTICS ;
+    rdf:predicate sup:investigatedWith ;
+    rdf:subject sup:Alert_98 ;
+    prov:wasDerivedFrom <https://github.com/SAP-docs/sap-hana-cloud-hana-database/blob/2bc2e9cb566e04a6985820ca332e9d595c55d3e9/docs/sql-ref/020-System-Views-Reference/022-Monitoring-Views/m-garbage-collection-statistics-system-view-20b04b8.md>,
+        <https://userapps.support.sap.com/sap/support/knowledge/en/3462032> .
+

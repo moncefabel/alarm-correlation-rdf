@@ -27,10 +27,13 @@ itself an ablation, not a default.
 
 from __future__ import annotations
 
+import math
 import re
+from collections import Counter
 from dataclasses import dataclass
 
-from rdflib import OWL, RDF, RDFS, XSD, Graph, Literal, URIRef
+from rdflib import OWL, RDF, RDFS, SKOS, XSD, Graph, Literal, URIRef
+from rdflib.collection import Collection
 
 # Standard vocabularies a query may legitimately use without them being part of
 # the domain ontology.
@@ -76,7 +79,12 @@ def _decamel(s: str) -> str:
 
 
 class SchemaIndex:
-    def __init__(self, ontology_path: str):
+    RETRIEVALS = ("lexical", "tbox_entities")
+
+    def __init__(self, ontology_path: str, retrieval: str = "lexical"):
+        if retrieval not in self.RETRIEVALS:
+            raise ValueError(f"retrieval must be one of {self.RETRIEVALS}")
+        self.retrieval = retrieval
         g = Graph()
         g.parse(ontology_path, format="turtle")
         self.g = g
@@ -87,6 +95,7 @@ class SchemaIndex:
             if it.kind == "property":
                 it.values = self._values(it.uri)
         self._known = self._all_iris()
+        self._entity_index = None
 
     def _lit(self, subj, pred) -> str:
         val = self.g.value(subj, pred)
@@ -156,6 +165,11 @@ class SchemaIndex:
         return "\n".join(f"PREFIX {p}: <{n}>" for p, n in sorted(self.prefixes.items()))
 
     def relevant(self, question: str, k: int = 25) -> str:
+        if self.retrieval == "tbox_entities":
+            return self.tbox_entities(question)
+        return self.lexical(question, k)
+
+    def lexical(self, question: str, k: int = 25) -> str:
         """Lexical overlap retrieval over schema AND entities."""
         qbag = set(_TOKEN.findall(question.lower()))
         scored = sorted(
@@ -173,6 +187,88 @@ class SchemaIndex:
                 keep.append(it)
         return "\n".join(it.render() for it in keep)
 
+    # ------------------------------------------------- schema + entity linking
+    def tbox_entities(self, question: str, k: int = 15) -> str:
+        """Every class and property, then the entities the question names.
+
+        On a graph with thousands of entities the lexical retrieval fills its
+        25 slots with entities sharing a common word ("view", "column") and
+        pushes out the properties the query needs. Here the schema is always
+        complete (it is small) and only entities are retrieved, in two tiers:
+
+        1. exact: a name of the entity appears in the question as a phrase. The
+           names are its label and alternative labels, the values of the keys the ontology declares for
+           its class (owl:hasKey: article number, alert number, view name), and
+           "<class word> <key>" ("alert 54"). A key of fewer than 4 digits only
+           counts with its class word, so "2" in "HANA 2.0" is not alert 2.
+        2. soft: label words shared with the question, weighted by rarity (IDF),
+           so "column", shared by 6 490 labels, weighs almost nothing.
+        """
+        names, bags, idf = self._entities()
+        ql = " " + question.lower() + " "
+        qbag = set(_TOKEN.findall(question.lower()))
+        exact, soft = [], []
+        for it in self.items:
+            if it.kind != "instance":
+                continue
+            hit = max((len(n) for n in names[it.uri] if _phrase(n, ql)), default=0)
+            if hit:
+                exact.append((-hit, len(it.label), it.uri, it))
+                continue
+            sc = sum(idf[t] for t in qbag & bags[it.uri])
+            if sc > 0:
+                soft.append((-sc, len(it.label), it.uri, it))
+        picked = [x[3] for x in sorted(exact)][:k]
+        picked += [x[3] for x in sorted(soft)][:max(0, k - len(picked))]
+        backbone = [it for it in self.items if it.kind in ("class", "property")]
+        return "\n".join(it.render() for it in backbone + picked)
+
+    def _entities(self):
+        if self._entity_index is not None:
+            return self._entity_index
+        sub_of: dict[str, set[str]] = {}
+        for c, sup in self.g.subject_objects(RDFS.subClassOf):
+            sub_of.setdefault(str(c), set()).add(str(sup))
+
+        def ancestors(c: str) -> set[str]:
+            out, todo = {c}, [c]
+            while todo:
+                for p in sub_of.get(todo.pop(), ()):
+                    if p not in out:
+                        out.add(p)
+                        todo.append(p)
+            return out
+
+        keys: dict[str, list[URIRef]] = {}
+        for c, lst in self.g.subject_objects(OWL.hasKey):
+            keys[str(c)] = list(Collection(self.g, lst))
+        names: dict[str, set[str]] = {}
+        bags: dict[str, set[str]] = {}
+        df: Counter = Counter()
+        for it in self.items:
+            if it.kind != "instance":
+                continue
+            node = URIRef(it.uri)
+            ns = {it.label.lower()} if it.label else set()
+            ns.update(str(v).lower() for v in self.g.objects(node, SKOS.altLabel))
+            classes = ancestors(it.type_)
+            words = {self._lit(URIRef(c), RDFS.label).lower().split()[-1]
+                     for c in classes if self._lit(URIRef(c), RDFS.label)}
+            for c in classes:
+                for kp in keys.get(c, ()):
+                    for v in self.g.objects(node, kp):
+                        v = str(v).lower()
+                        if not v.isdigit() or len(v) >= 4:
+                            ns.add(v)
+                        ns.update(f"{w} {v}" for w in words)
+            names[it.uri] = {n for n in ns if n}
+            bags[it.uri] = set(_TOKEN.findall(it.label.lower().replace("_", " ")))
+            df.update(bags[it.uri])
+        n = max(1, len(bags))
+        idf = {t: math.log(n / c) for t, c in df.items()}
+        self._entity_index = (names, bags, idf)
+        return self._entity_index
+
     def full(self) -> str:
         return "\n".join(it.render() for it in self.items)
 
@@ -184,3 +280,15 @@ class SchemaIndex:
 
     def is_known(self, iri: str) -> bool:
         return iri in self._known or iri.startswith(STANDARD_NS)
+
+
+def _phrase(name: str, text: str) -> bool:
+    """`name` occurs in `text` as a whole phrase (both lower case)."""
+    i = text.find(name)
+    while i >= 0:
+        before = text[i - 1] if i > 0 else " "
+        after = text[i + len(name)] if i + len(name) < len(text) else " "
+        if not (before.isalnum() or before == "_") and not (after.isalnum() or after == "_"):
+            return True
+        i = text.find(name, i + 1)
+    return False

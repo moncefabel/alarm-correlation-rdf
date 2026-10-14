@@ -1,0 +1,16 @@
+{
+  "lexical": {
+    "retrieval": "lexical",
+    "questions": 29,
+    "all_gold_iris_in_context": 11,
+    "iri_recall": 0.607,
+    "mean_context_chars": 4571
+  },
+  "tbox_entities": {
+    "retrieval": "tbox_entities",
+    "questions": 29,
+    "all_gold_iris_in_context": 29,
+    "iri_recall": 1.0,
+    "mean_context_chars": 11397
+  }
+}

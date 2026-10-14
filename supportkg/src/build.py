@@ -83,18 +83,29 @@ def extract_all(records: list[Record], linker_factory=None) -> list[Extraction]:
 
 def materialise(g: Graph, onto: Graph) -> int:
     """owl:inverseOf (both directions) and owl:SymmetricProperty, to a fixpoint
-    of one step each, which is all these two rules need."""
+    of one step each, which is all these two rules need.
+
+    Facts are read from the data AND from the ontology files, because the PPMS
+    stand-in ships its instances there (versionOf, supportPackageOf...);
+    inferred triples go to the data."""
     added = 0
     pairs = [(p, q) for p, q in onto.subject_objects(OWL.inverseOf)]
     pairs += [(q, p) for p, q in pairs]
     sym = set(onto.subjects(RDF.type, OWL.SymmetricProperty))
+
+    def facts(p):
+        return list(g.subject_objects(p)) + list(onto.subject_objects(p))
+
+    def new(t):
+        return t not in g and t not in onto
+
     for p, q in pairs:
-        for s, o in list(g.subject_objects(p)):
-            if (o, q, s) not in g:
+        for s, o in facts(p):
+            if new((o, q, s)):
                 g.add((o, q, s)); added += 1
     for p in sym:
-        for s, o in list(g.subject_objects(p)):
-            if (o, p, s) not in g:
+        for s, o in facts(p):
+            if new((o, p, s)):
                 g.add((o, p, s)); added += 1
     return added
 

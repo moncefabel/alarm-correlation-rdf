@@ -104,7 +104,7 @@ From the repository root:
 ```bash
 pip install -r kgqa/requirements.txt
 
-# offline tests: no API key, no network (124 tests)
+# offline tests: no API key, no network (172 tests)
 pytest kgqa/tests -q
 
 # benchmark against any OpenAI-compatible endpoint (OpenAI, Groq, Mistral, vLLM, Ollama)
@@ -349,10 +349,38 @@ Three points follow.
 - Two OWL axioms target the remaining errors directly: an inverse property
   (`causedBy owl:inverseOf causallyLinkedTo`) for C02 and C03, and
   `correlatedWith a owl:SymmetricProperty` for K02. Testing them, with the
-  inferred triples materialised, is the next experiment.
+  inferred triples materialised, is the next experiment (below).
 - An empty answer to a question that presupposes one ("what caused...") is a
   cheap signal for a repair, and a direction check like the audit could run
   before execution. That is semantic verification, beyond the symbolic gate.
+
+### Next experiment: the two OWL axioms
+
+`scripts/make_owl_variant.py` writes `ontology/alarm_ontology_owl.ttl`: the
+same graph plus `net:causedBy owl:inverseOf net:causallyLinkedTo` and
+`net:correlatedWith a owl:SymmetricProperty`, with the 5 entailed triples
+materialised. Every gold answer is unchanged on it
+(`tests/test_owl_variant.py`), so the two graphs can be compared question by
+question. Prediction, written before the run: C03 and K02 improve on every
+arm, and the direction audit counts fewer inversions; if the inversions only
+move to `causedBy`, naming was not the cause.
+
+```bash
+python kgqa/scripts/make_owl_variant.py
+python kgqa/src/evaluate.py --model openai/gpt-oss-120b --reasoning-effort low \
+    --ontology ontology/alarm_ontology_owl.ttl --topology both --seed 0 \
+    --out kgqa/results_owl
+python kgqa/scripts/direction_audit.py --out kgqa/results_owl
+```
+
+### Other graphs
+
+The prompts' description of the graph is a domain profile
+(`src/domains.py`): `--domain alarms` (default, byte-identical to the runs
+above, checked by a hash of every prompt in `tests/test_domains.py`) or
+`--domain support` for the SAP support graph of [`supportkg/`](../supportkg/),
+with its own benchmark and question types. See
+[`supportkg/README.md`](../supportkg/README.md#question-answering-over-the-graph).
 
 ### Limits
 
@@ -363,4 +391,7 @@ Three points follow.
   cause most remaining errors (see above)
 - arms ran in different sessions; session-to-session variation is of the
   order of the smallest differences reported
-- entity linking is lexical; embedding retrieval is planned as an ablation
+- entity linking is lexical; on the 7 000-entity support graph the lexical
+  retrieval misses 39 % of the IRIs the gold queries need, and a schema-first
+  retrieval with entity names from `owl:hasKey` replaces it there
+  (`supportkg/README.md`)

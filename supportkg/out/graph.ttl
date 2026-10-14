@@ -8,56 +8,6 @@
 @prefix sup: <http://example.org/sapsupport#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-ppms:PV_HANA_Platform_1_0 a ppms:ProductVersion ;
-    rdfs:label "SAP HANA 1.0, platform edition" ;
-    ppms:includesComponent ppms:SC_HANA_DB_1_0 ;
-    ppms:versionOf ppms:Product_HANA_Platform ;
-    skos:altLabel "SAP HANA 1.0",
-        "SAP HANA platform edition 1.0" .
-
-ppms:PV_HANA_Platform_2_0 a ppms:ProductVersion ;
-    rdfs:label "SAP HANA, platform edition 2.0" ;
-    ppms:includesComponent ppms:SC_HANA_CLIENT_2_0,
-        ppms:SC_HANA_DB_2_0 ;
-    ppms:versionOf ppms:Product_HANA_Platform ;
-    skos:altLabel "SAP HANA 2.0",
-        "SAP HANA PLATFORM EDITION 2.0",
-        "SAP HANA platform edition 2.0" .
-
-ppms:Product_HANA_Cloud a ppms:Product ;
-    rdfs:label "SAP HANA Cloud" ;
-    ppms:inProductLine ppms:Line_SAP_HANA ;
-    skos:altLabel "HANA Cloud",
-        "SAP HANA Cloud, SAP HANA database" .
-
-ppms:SP_HANA_DB_2_0_SPS05 a ppms:SupportPackage ;
-    rdfs:label "SAP HANA DATABASE 2.0 SPS 05" ;
-    ppms:spsNumber 5 ;
-    ppms:supportPackageOf ppms:SC_HANA_DB_2_0 ;
-    skos:altLabel "SPS 05",
-        "SPS05" .
-
-ppms:SP_HANA_DB_2_0_SPS06 a ppms:SupportPackage ;
-    rdfs:label "SAP HANA DATABASE 2.0 SPS 06" ;
-    ppms:spsNumber 6 ;
-    ppms:supportPackageOf ppms:SC_HANA_DB_2_0 ;
-    skos:altLabel "SPS 06",
-        "SPS06" .
-
-ppms:SP_HANA_DB_2_0_SPS07 a ppms:SupportPackage ;
-    rdfs:label "SAP HANA DATABASE 2.0 SPS 07" ;
-    ppms:spsNumber 7 ;
-    ppms:supportPackageOf ppms:SC_HANA_DB_2_0 ;
-    skos:altLabel "SPS 07",
-        "SPS07" .
-
-ppms:SP_HANA_DB_2_0_SPS08 a ppms:SupportPackage ;
-    rdfs:label "SAP HANA DATABASE 2.0 SPS 08" ;
-    ppms:spsNumber 8 ;
-    ppms:supportPackageOf ppms:SC_HANA_DB_2_0 ;
-    skos:altLabel "SPS 08",
-        "SPS08" .
-
 ppms:hasSupportPackage a owl:ObjectProperty ;
     rdfs:label "has support package" ;
     owl:inverseOf ppms:supportPackageOf .
@@ -344,11 +294,47 @@ sup:toolUsedIn a owl:ObjectProperty ;
     rdfs:label "tool used in article" ;
     owl:inverseOf sup:usesTool .
 
+ppms:Product_HANA_Cloud a ppms:Product ;
+    rdfs:label "SAP HANA Cloud" ;
+    ppms:inProductLine ppms:Line_SAP_HANA ;
+    skos:altLabel "HANA Cloud",
+        "SAP HANA Cloud, SAP HANA database" .
+
 ppms:SC_HANA_CLIENT_2_0 a ppms:SoftwareComponent ;
-    rdfs:label "SAP HANA CLIENT 2.0" .
+    rdfs:label "SAP HANA CLIENT 2.0" ;
+    ppms:includedIn ppms:PV_HANA_Platform_2_0 .
 
 ppms:SC_HANA_DB_1_0 a ppms:SoftwareComponent ;
-    rdfs:label "SAP HANA DATABASE 1.0" .
+    rdfs:label "SAP HANA DATABASE 1.0" ;
+    ppms:includedIn ppms:PV_HANA_Platform_1_0 .
+
+ppms:SP_HANA_DB_2_0_SPS05 a ppms:SupportPackage ;
+    rdfs:label "SAP HANA DATABASE 2.0 SPS 05" ;
+    ppms:spsNumber 5 ;
+    ppms:supportPackageOf ppms:SC_HANA_DB_2_0 ;
+    skos:altLabel "SPS 05",
+        "SPS05" .
+
+ppms:SP_HANA_DB_2_0_SPS06 a ppms:SupportPackage ;
+    rdfs:label "SAP HANA DATABASE 2.0 SPS 06" ;
+    ppms:spsNumber 6 ;
+    ppms:supportPackageOf ppms:SC_HANA_DB_2_0 ;
+    skos:altLabel "SPS 06",
+        "SPS06" .
+
+ppms:SP_HANA_DB_2_0_SPS07 a ppms:SupportPackage ;
+    rdfs:label "SAP HANA DATABASE 2.0 SPS 07" ;
+    ppms:spsNumber 7 ;
+    ppms:supportPackageOf ppms:SC_HANA_DB_2_0 ;
+    skos:altLabel "SPS 07",
+        "SPS07" .
+
+ppms:SP_HANA_DB_2_0_SPS08 a ppms:SupportPackage ;
+    rdfs:label "SAP HANA DATABASE 2.0 SPS 08" ;
+    ppms:spsNumber 8 ;
+    ppms:supportPackageOf ppms:SC_HANA_DB_2_0 ;
+    skos:altLabel "SPS 08",
+        "SPS08" .
 
 ppms:inProductLine a owl:ObjectProperty ;
     rdfs:label "in product line" ;
@@ -46224,14 +46210,16 @@ sup:viewName a owl:DatatypeProperty,
     rdfs:range xsd:string .
 
 ppms:Line_SAP_HANA a ppms:ProductLine ;
-    rdfs:label "SAP HANA" .
+    rdfs:label "SAP HANA" ;
+    ppms:lineHasProduct ppms:Product_HANA_Cloud,
+        ppms:Product_HANA_Platform .
 
-ppms:Product_HANA_Platform a ppms:Product ;
-    rdfs:label "SAP HANA, platform edition" ;
-    ppms:inProductLine ppms:Line_SAP_HANA ;
-    skos:altLabel "SAP HANA Database",
-        "SAP HANA Platform",
-        "SAP HANA platform edition" .
+ppms:PV_HANA_Platform_1_0 a ppms:ProductVersion ;
+    rdfs:label "SAP HANA 1.0, platform edition" ;
+    ppms:includesComponent ppms:SC_HANA_DB_1_0 ;
+    ppms:versionOf ppms:Product_HANA_Platform ;
+    skos:altLabel "SAP HANA 1.0",
+        "SAP HANA platform edition 1.0" .
 
 sup:Alert_12 a sup:Alert ;
     rdfs:label "Memory usage of name server" ;
@@ -46802,8 +46790,26 @@ sup:mentionsAlert a owl:ObjectProperty ;
     rdfs:domain sup:KnowledgeArticle ;
     rdfs:range sup:Alert .
 
+ppms:PV_HANA_Platform_2_0 a ppms:ProductVersion ;
+    rdfs:label "SAP HANA, platform edition 2.0" ;
+    ppms:includesComponent ppms:SC_HANA_CLIENT_2_0,
+        ppms:SC_HANA_DB_2_0 ;
+    ppms:versionOf ppms:Product_HANA_Platform ;
+    skos:altLabel "SAP HANA 2.0",
+        "SAP HANA PLATFORM EDITION 2.0",
+        "SAP HANA platform edition 2.0" .
+
 ppms:ProductLine a owl:Class ;
     rdfs:label "Product line" .
+
+ppms:Product_HANA_Platform a ppms:Product ;
+    rdfs:label "SAP HANA, platform edition" ;
+    ppms:hasVersion ppms:PV_HANA_Platform_1_0,
+        ppms:PV_HANA_Platform_2_0 ;
+    ppms:inProductLine ppms:Line_SAP_HANA ;
+    skos:altLabel "SAP HANA Database",
+        "SAP HANA Platform",
+        "SAP HANA platform edition" .
 
 sup:Alert_1 a sup:Alert ;
     rdfs:label "Host physical memory usage" ;
@@ -47532,7 +47538,12 @@ ppms:ProductVersion a owl:Class ;
     rdfs:subClassOf sup:ProductItem .
 
 ppms:SC_HANA_DB_2_0 a ppms:SoftwareComponent ;
-    rdfs:label "SAP HANA DATABASE 2.0" .
+    rdfs:label "SAP HANA DATABASE 2.0" ;
+    ppms:hasSupportPackage ppms:SP_HANA_DB_2_0_SPS05,
+        ppms:SP_HANA_DB_2_0_SPS06,
+        ppms:SP_HANA_DB_2_0_SPS07,
+        ppms:SP_HANA_DB_2_0_SPS08 ;
+    ppms:includedIn ppms:PV_HANA_Platform_2_0 .
 
 sup:Alert_25 a sup:Alert ;
     rdfs:label "Check number of connections" ;

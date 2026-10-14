@@ -44,18 +44,48 @@ predicts `sup:investigatedWith` (alert → view) and records how:
   (`sentence-transformers/all-MiniLM-L6-v2`, Hugging Face, PyTorch).
 
 Both keep the top 2 views above a threshold fixed before any embedding result
-was seen. They are scored against `gold/alert_views.yaml` (32 alerts),
-**currently a draft** to be checked against the documentation before scores
-are reported.
+was seen (lexical 0.35, embedding 0.5). They are scored against
+`gold/alert_views.yaml`: 32 alerts, 43 (alert, view) pairs, drafted from SAP
+HANA administration practice and checked by the author against the view
+descriptions in the documentation.
 
 | Method | Precision | Recall | F1 | hit@2 |
 |---|---|---|---|---|
-| lexical (draft gold) | 0.469 | 0.375 | 0.417 | 0.438 |
-| embedding | run `evaluate_links.py --method hf` | | | |
+| lexical (IDF-weighted word overlap) | **0.469** | **0.349** | **0.400** | **0.438** |
+| embedding (`all-MiniLM-L6-v2`) | 0.091 | 0.116 | 0.102 | 0.156 |
+
+hit@2: share of alerts with at least one correct view among the two proposed.
+
+**The general-purpose embedding model loses to the word-overlap baseline by a
+factor of four.** The errors show why:
+
+- **The query template matches the wrong thing.** Alerts are embedded as
+  "SAP HANA alert: <name>". The view whose description is closest to that
+  phrase is `M_TIMEZONE_ALERTS` ("alerts relating to the status of SAP HANA
+  internal timezone conversion"), proposed first for 7 of 32 alerts, from
+  savepoint duration to automatic log backup. Views whose description says
+  "SAP HANA" (`M_SHARED_MEMORY`, `M_TRACEFILE_CONTENTS`) are pulled up the
+  same way. The words shared by every query dominate the similarity.
+- **Domain abbreviations are opaque to it.** `M_CS_TABLES` (CS: column store)
+  is the view for four alerts about column-store tables; its description
+  says only "runtime data for column tables".
+- **Domain jargon is rare in its training data**: savepoint, delta storage,
+  mergedog, pagedump.
+
+The lexical baseline is immune to the first two: rare words dominate its
+score, and a word in the view's name counts double. The general lesson for
+enterprise knowledge graphs: off-the-shelf sentence embeddings are not a safe
+default for linking technical identifiers, and a strong lexical baseline has
+to be reported next to them.
+
+Next experiments, reported separately as post-hoc since they are designed after
+seeing these errors: the query without the template, a hybrid of the two
+scores, a domain-adapted or larger encoder, and LLM re-ranking of the lexical
+candidates.
 
 The lexical baseline finds links whose words match (`Disk usage` →
 `M_DISK_USAGE`) and misses paraphrases (`Number of diagnosis files` →
-`M_TRACEFILES`), which is what the embedding model is there to close.
+`M_TRACEFILES`), which is what a better semantic method has to close.
 
 ## Ontology
 
@@ -110,6 +140,7 @@ python supportkg/src/evaluate_links.py --show       # lexical alert -> view link
 pip install sentence-transformers                   # optional: Hugging Face models (PyTorch)
 python supportkg/src/evaluate_links.py --method both --show
 python supportkg/src/build.py --view-linker hf      # graph with embedding links
+python supportkg/src/build.py --no-materialise --out supportkg/out_noinv   # OWL experiment
 
 # load into Fuseki next to the alarm graph
 docker compose -f kgqa/docker-compose.yml up -d
@@ -122,11 +153,75 @@ With pages saved by hand in `supportkg/data/saved/`:
 article-level extraction.
 
 Tests (offline, no SAP page, no model download; one test also checks the gold
-views against the real documentation when the clone is present):
+views against the real documentation when the clone is present; the benchmark
+tests read the two committed graphs):
 
 ```bash
 pytest supportkg/tests -q
 ```
+
+## Question answering over the graph
+
+The kgqa agents run on this graph unchanged, with a domain profile that tells
+them what the graph holds (`kgqa/src/domains.py`, `--domain support`).
+
+**Benchmark** (`benchmark/questions.yaml`): 32 questions, each with a gold
+SPARQL query and an answer written by hand, in six buckets: lookup, inverse,
+multi-hop across sources (article → alert → view → column or documentation
+link; PPMS version → component → support package), aggregation, negation,
+out of scope. `tests/test_support_benchmark.py` runs every gold query on both
+graphs of the OWL experiment below and checks the answer.
+
+**Schema retrieval at this scale.** The graph has 7 278 entities, 6 490 of
+them columns. The alarm graph's retrieval (top 25 schema items and entities
+by shared words) brings only 61 % of the IRIs the gold queries need into the
+prompt here, and every one of the 29 in-scope questions needs all of them:
+"columns" and "view" are words shared by thousands of column labels, which
+push out the properties. The support profile therefore uses a schema-first
+retrieval: every class and property (the T-box is small), then the entities
+the question names, found by their label, alternative labels and the values
+of the keys the ontology declares (`owl:hasKey`: article number, alert
+number, view name), then by rare shared words. Measured without calling any
+model (`kgqa/scripts/retrieval_recall.py`):
+
+| Retrieval | Gold IRIs in the prompt | Questions with all of them | Prompt size |
+|---|---|---|---|
+| lexical top 25 (alarm default) | 0.607 | 11 / 29 | 4 600 chars |
+| schema + entities by key | **1.000** | **29 / 29** | 11 400 chars |
+
+On the alarm graph both reach 1.000, which is why the problem did not show
+there. The cost is a prompt about 2.5 times longer.
+
+**The OWL experiment.** Does materialising the ontology's inverse and
+symmetric axioms help an LLM agent? Two graphs, same data:
+
+- `out/graph.ttl`: inverses and symmetric links materialised (53 358 triples);
+- `out_noinv/graph.ttl`: built with `--no-materialise` (45 885 triples). Each
+  fact exists only in the direction it was extracted: `columnOf` but no
+  `hasColumn`, `addresses` but no `addressedBy`, `seeAlso` one way.
+
+The ontology, and so the prompt's schema, is the same in both: the agent is
+told `hasColumn` exists in both cases, and in the second graph it returns
+nothing. The `inverse` bucket asks questions against the extracted direction
+("which columns does M_PASSWORD_POLICY have?"). Prediction, written before the
+run: the inverse bucket drops on the no-inverse graph, the other buckets do
+not move.
+
+```bash
+set -a; . ~/.config/claude.env; set +a          # or groq.env, see kgqa/.env.example
+unset SPARQL_ENDPOINT                            # both graphs run in memory
+python kgqa/src/evaluate.py --domain support --model claude-haiku-5-5 \
+    --topology both --seed 0                                  # -> kgqa/results_support
+python kgqa/src/evaluate.py --domain support --model claude-haiku-5-5 \
+    --topology both --seed 0 --ontology supportkg/out_noinv/graph.ttl \
+    --out kgqa/results_support_noinv
+```
+
+One run of one arm is about 110 000 input tokens (the schema is in every
+prompt), so about $0.03 with Claude Haiku 5.5 or gpt-oss-120b on a paid tier;
+the free Groq tier's daily quota holds about one arm-run.
+
+Results: pending.
 
 ## Data rules
 
@@ -143,6 +238,7 @@ synthetic (invented text, fake numbers).
   article sources that do not scrape, spaCy extraction, lexical and embedding
   linkers, graph builder with provenance and OWL materialisation, link and
   extraction scoring
-- next: check the gold list, run the embedding linker, then a support
-  benchmark (which view for which alert, which columns, which statement, which
-  article) through the kgqa agents, with and without the materialised inverses
+- built: support benchmark (32 questions, gold checked on both graphs),
+  schema-first retrieval for the agents, the graph without inverses
+- next: run the agents on both graphs; post-hoc linker experiments (no
+  template, hybrid score, LLM re-ranking), reported as post-hoc

@@ -125,7 +125,7 @@ the control flow differs, so the comparison isolates the topology.
   hand-written answer
 - symbolic gate rejecting IRIs absent from the graph before execution
 - runs on in-memory rdflib or Apache Jena Fuseki (`SPARQL_ENDPOINT`)
-- 124 offline tests, no API key required
+- 172 offline tests, no API key required
 - result (gpt-oss-120b, 3 runs, Fuseki): execution accuracy 0.885 for the
   orchestrator against 0.750 for ReAct, the whole gap on multi-hop causal and
   counterfactual questions, for 3.6 % more tokens
@@ -145,10 +145,17 @@ a PPMS-shaped product slice (a hand-written stand-in, since PPMS is internal).
 - OWL ontology with a named inverse for every directed relation and symmetric
   undirected relations, the two fixes the kgqa error analysis points to
 - a cross-source link predicted from no single source: which monitoring view to
-  query for which alert, by a lexical baseline and a Hugging Face embedding model,
-  scored against a gold list
+  query for which alert, scored against a checked gold list. An IDF-weighted
+  lexical baseline (F1 0.40) beats an off-the-shelf Hugging Face embedding model
+  (F1 0.10) by a factor of four, on SAP identifiers and jargon
 - spaCy extraction for article pages; entity resolution; statement-level PROV-O
   provenance; SHACL validation (53 000 triples, conforming)
+- the kgqa agents run on it through a domain profile, with a 32-question
+  benchmark (lookup, inverse, cross-source multi-hop, aggregation, negation,
+  out of scope). At 7 000 entities the alarm graph's schema retrieval brings
+  only 61 % of the needed IRIs into the prompt; a schema-first retrieval with
+  entity names from `owl:hasKey` brings 100 %. Next: the agents on the graph
+  with and without materialised OWL inverses
 - no scraping: SAP's support portal disallows crawlers, and the collector checks
   robots.txt and refuses. Details in [`supportkg/README.md`](supportkg/README.md)
 

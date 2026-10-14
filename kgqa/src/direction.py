@@ -28,15 +28,22 @@ def _sides(pairs: list[tuple[str, str]]) -> tuple[set[str], set[str]]:
     return subj, obj
 
 
-def inverted_entities(pred: str, gold: str, prop: str = "net:causallyLinkedTo") -> list[str]:
+def inverted_entities(pred: str, gold: str, prop: str = "net:causallyLinkedTo",
+                      inverse: str | None = "net:causedBy") -> list[str]:
     """Named entities the gold query puts on one side of `prop` and the
     prediction puts only on the other side.
 
     An entity the gold uses on both sides (a UNION over both directions, as in
     K02) is ignored: missing one direction is incompleteness, not inversion.
+    A triple of the prediction written with the inverse property (the OWL
+    variant's `net:causedBy`) counts with subject and object swapped, so
+    `X causedBy ?c` is read as `?c causallyLinkedTo X`, the right way round.
     """
     g_subj, g_obj = _sides(_pairs(gold, prop))
-    p_subj, p_obj = _sides(_pairs(pred, prop))
+    pairs = _pairs(pred, prop)
+    if inverse:
+        pairs += [(o, s) for s, o in _pairs(pred, inverse)]
+    p_subj, p_obj = _sides(pairs)
     out = []
     for e in sorted(g_obj - g_subj):
         if e in p_subj and e not in p_obj:

@@ -1,0 +1,314 @@
+# Gold benchmark on supportkg/out/graph.ttl (SAP HANA support graph).
+#
+# Same format as kgqa/benchmark/questions.yaml, so the same agents and the same
+# scorer run on it:  python kgqa/src/evaluate.py --domain support
+#
+# Every entry has:
+#   gold_sparql : executed by the harness to build the reference answer set
+#   expected    : the answer written by hand (local names or literals)
+#
+# supportkg/tests/test_benchmark.py runs each gold query on TWO graphs, the
+# default build and the build without materialised inverses
+# (build.py --no-materialise), and checks both return `expected`. Gold queries
+# therefore only use the direction in which a fact is ASSERTED: article
+# addresses alert, alert investigatedWith view, column columnOf view, version
+# versionOf product, and seeAlso read both ways with UNION. The question,
+# however, may ask in the other direction: that is the `inverse` bucket.
+#
+# Answers come from the graph as built with the default settings, including the
+# predicted alert -> view links of the lexical linker. Multi-hop questions use
+# alerts whose predicted links the gold list (gold/alert_views.yaml) confirms:
+# alerts 2, 10 and 55. Questions on other alerts (I03, N02) test reading the
+# graph, not the truth of every link in it.
+#
+# Buckets:
+#   lookup        one fact about a named entity
+#   inverse       the question is phrased against the asserted direction:
+#                 answerable on the graph with materialised inverses by either
+#                 property, on the graph without them only by reversing the
+#                 triple. The bucket the OWL experiment is about.
+#   multihop      crosses sources: article -> alert -> view -> column or
+#                 documentation link, or PPMS version -> component -> package
+#   aggregation   COUNT, GROUP BY, superlatives
+#   negation      FILTER NOT EXISTS
+#   out_of_scope  must be refused
+
+questions:
+
+  # -------------------------------------------------------------- lookup
+  - id: L01
+    type: lookup
+    question: "What is the data type of the DURATION column of M_SAVEPOINTS?"
+    expected: [BIGINT]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      SELECT ?t WHERE { sup:Column_M_SAVEPOINTS__DURATION sup:dataType ?t . }
+
+  - id: L02
+    type: lookup
+    question: "Which category of SQL statements does ALTER SYSTEM SAVEPOINT belong to?"
+    expected: [System Management]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      SELECT ?c WHERE { sup:Statement_ALTER_SYSTEM_SAVEPOINT sup:statementCategory ?c . }
+
+  - id: L03
+    type: lookup
+    question: "What is the name of SAP HANA alert 54?"
+    expected: [Savepoint Duration]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+      SELECT ?n WHERE { sup:Alert_54 rdfs:label ?n . }
+
+  - id: L04
+    type: lookup
+    question: "Which alert does knowledge article 1977220 address?"
+    expected: [Alert_54]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      SELECT ?a WHERE { sup:Article_1977220 sup:addresses ?a . }
+
+  - id: L05
+    type: lookup
+    question: "Which software components are included in SAP HANA, platform edition 2.0?"
+    expected: [SC_HANA_CLIENT_2_0, SC_HANA_DB_2_0]
+    gold_sparql: |
+      PREFIX ppms: <http://example.org/ppms#>
+      SELECT ?c WHERE { ppms:PV_HANA_Platform_2_0 ppms:includesComponent ?c . }
+
+  - id: L06
+    type: lookup
+    question: "Which view has a column named FLUSHED_ROWSTORE_SIZE_IN_CRITICAL_PHASE?"
+    expected: [View_M_SAVEPOINTS]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      SELECT ?v WHERE { ?c sup:columnName "FLUSHED_ROWSTORE_SIZE_IN_CRITICAL_PHASE" ;
+                           sup:columnOf ?v . }
+
+  # ------------------------------------------------------------- inverse
+  - id: I01
+    type: inverse
+    question: "Which columns does the monitoring view M_PASSWORD_POLICY have?"
+    expected: [Column_M_PASSWORD_POLICY__PROPERTY, Column_M_PASSWORD_POLICY__VALUE]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      SELECT ?c WHERE { ?c sup:columnOf sup:View_M_PASSWORD_POLICY . }
+
+  - id: I02
+    type: inverse
+    question: "Which knowledge article addresses alert 55?"
+    expected: [Article_1977207]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      SELECT ?art WHERE { ?art sup:addresses sup:Alert_55 . }
+
+  - id: I03
+    type: inverse
+    question: "Which alerts can be investigated with the view M_DISK_USAGE?"
+    expected: [Alert_1, Alert_2, Alert_5]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      SELECT ?a WHERE { ?a sup:investigatedWith sup:View_M_DISK_USAGE . }
+
+  - id: I04
+    type: inverse
+    question: "Which knowledge articles mention alert 25?"
+    expected: [Article_1910159, Article_3310156]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      SELECT ?art WHERE { ?art sup:mentionsAlert sup:Alert_25 . }
+
+  - id: I05
+    type: inverse
+    question: "Which versions of the product SAP HANA, platform edition exist?"
+    expected: [PV_HANA_Platform_1_0, PV_HANA_Platform_2_0]
+    gold_sparql: |
+      PREFIX ppms: <http://example.org/ppms#>
+      SELECT ?v WHERE { ?v ppms:versionOf ppms:Product_HANA_Platform . }
+
+  - id: I06
+    type: inverse
+    question: "Which support packages exist for the software component SAP HANA DATABASE 2.0?"
+    expected: [SP_HANA_DB_2_0_SPS05, SP_HANA_DB_2_0_SPS06, SP_HANA_DB_2_0_SPS07,
+               SP_HANA_DB_2_0_SPS08]
+    gold_sparql: |
+      PREFIX ppms: <http://example.org/ppms#>
+      SELECT ?sp WHERE { ?sp ppms:supportPackageOf ppms:SC_HANA_DB_2_0 . }
+
+  # ------------------------------------------------------------ multihop
+  - id: M01
+    type: multihop
+    question: "Which view should be queried to investigate the alert addressed by knowledge article 1977207?"
+    expected: [View_M_CS_UNLOADS]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      SELECT ?v WHERE { sup:Article_1977207 sup:addresses ?a . ?a sup:investigatedWith ?v . }
+
+  - id: M02
+    type: multihop
+    question: "Which TIMESTAMP column does the view used to investigate the Columnstore unloads alert have?"
+    expected: [Column_M_CS_UNLOADS__UNLOAD_TIME]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+      SELECT ?c WHERE { ?a rdfs:label "Columnstore unloads" ; sup:investigatedWith ?v .
+                        ?c sup:columnOf ?v ; sup:dataType "TIMESTAMP" . }
+
+  - id: M03
+    type: multihop
+    question: "Which documentation pages are linked as see also with the views used to investigate the Disk usage alert?"
+    expected: [View_M_DISKS, View_M_DISK_USAGE, View_M_VOLUME_SIZES]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+      SELECT DISTINCT ?x WHERE {
+        ?a rdfs:label "Disk usage" ; sup:investigatedWith ?v .
+        { ?v sup:seeAlso ?x } UNION { ?x sup:seeAlso ?v } }
+
+  - id: M04
+    type: multihop
+    question: "Which product line does the product of SAP HANA, platform edition 2.0 belong to?"
+    expected: [Line_SAP_HANA]
+    gold_sparql: |
+      PREFIX ppms: <http://example.org/ppms#>
+      SELECT ?l WHERE { ppms:PV_HANA_Platform_2_0 ppms:versionOf ?p . ?p ppms:inProductLine ?l . }
+
+  - id: M05
+    type: multihop
+    question: "Which support packages exist for the software components included in SAP HANA, platform edition 2.0?"
+    expected: [SP_HANA_DB_2_0_SPS05, SP_HANA_DB_2_0_SPS06, SP_HANA_DB_2_0_SPS07,
+               SP_HANA_DB_2_0_SPS08]
+    gold_sparql: |
+      PREFIX ppms: <http://example.org/ppms#>
+      SELECT ?sp WHERE { ppms:PV_HANA_Platform_2_0 ppms:includesComponent ?c .
+                         ?sp ppms:supportPackageOf ?c . }
+
+  - id: M06
+    type: multihop
+    question: "Which knowledge article covers the alert that is investigated with the view M_CS_UNLOADS?"
+    expected: [Article_1977207]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      SELECT ?art WHERE { ?a sup:investigatedWith sup:View_M_CS_UNLOADS . ?art sup:addresses ?a . }
+
+  - id: M07
+    type: multihop
+    question: "Which System Management statements are linked as see also with the view M_SAVEPOINTS?"
+    expected: [Statement_ALTER_SYSTEM_SAVEPOINT]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      SELECT DISTINCT ?s WHERE {
+        ?s sup:statementCategory "System Management" .
+        { sup:View_M_SAVEPOINTS sup:seeAlso ?s } UNION { ?s sup:seeAlso sup:View_M_SAVEPOINTS } }
+
+  - id: M08
+    type: multihop
+    question: "What is the number of the alert that the view M_LICENSES helps investigate?"
+    expected: ["31"]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      SELECT ?n WHERE { ?a sup:investigatedWith sup:View_M_LICENSES ; sup:alertNumber ?n . }
+
+  # --------------------------------------------------------- aggregation
+  - id: A01
+    type: aggregation
+    question: "How many columns does the monitoring view M_SAVEPOINTS have?"
+    expected: ["27"]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      SELECT (COUNT(?c) AS ?n) WHERE { ?c sup:columnOf sup:View_M_SAVEPOINTS . }
+
+  - id: A02
+    type: aggregation
+    question: "How many SQL statements belong to the System Management category?"
+    expected: ["48"]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      SELECT (COUNT(?s) AS ?n) WHERE { ?s sup:statementCategory "System Management" . }
+
+  - id: A03
+    type: aggregation
+    question: "Which monitoring view has the most columns?"
+    expected: [View_M_LIVECACHE_PROCEDURE_STATISTICS]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      SELECT ?v WHERE { ?v a sup:MonitoringView . ?c sup:columnOf ?v . }
+      GROUP BY ?v ORDER BY DESC(COUNT(?c)) LIMIT 1
+
+  - id: A04
+    type: aggregation
+    question: "How many alerts are addressed by at least one knowledge article?"
+    expected: ["32"]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      SELECT (COUNT(DISTINCT ?a) AS ?n) WHERE { ?art sup:addresses ?a . }
+
+  - id: A05
+    type: aggregation
+    question: "Which category contains the most SQL statements?"
+    expected: [System Management]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      SELECT ?cat WHERE { ?s sup:statementCategory ?cat . }
+      GROUP BY ?cat ORDER BY DESC(COUNT(?s)) LIMIT 1
+
+  # ------------------------------------------------------------ negation
+  - id: N01
+    type: negation
+    question: "Which knowledge articles address no alert?"
+    expected: [Article_1840954, Article_2326040, Article_2439125, Article_2445867,
+               Article_3301980, Article_3310156, Article_3363209]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      SELECT ?art WHERE { ?art a sup:KnowledgeArticle .
+                          FILTER NOT EXISTS { ?art sup:addresses ?a } }
+
+  - id: N02
+    type: negation
+    question: "Which alerts have no view linked to investigate them?"
+    expected: [Alert_12, Alert_19, Alert_29, Alert_3, Alert_34, Alert_4, Alert_40,
+               Alert_42, Alert_49, Alert_50, Alert_51, Alert_53, Alert_69]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      SELECT ?a WHERE { ?a a sup:Alert . FILTER NOT EXISTS { ?a sup:investigatedWith ?v } }
+
+  - id: N03
+    type: negation
+    question: "Which alerts are mentioned in a knowledge article that does not address them?"
+    expected: [Alert_25]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      SELECT DISTINCT ?a WHERE { ?art sup:mentionsAlert ?a .
+                                 FILTER NOT EXISTS { ?art sup:addresses ?a } }
+
+  - id: N04
+    type: negation
+    question: "Which Transaction Management statements have no see also link in the documentation?"
+    expected: [Statement_COMMIT, Statement_SET_TRANSACTION]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      SELECT ?s WHERE { ?s sup:statementCategory "Transaction Management" .
+        FILTER NOT EXISTS { { ?s sup:seeAlso ?x } UNION { ?x sup:seeAlso ?s } } }
+
+  # -------------------------------------------------------- out of scope
+  - id: O01
+    type: out_of_scope
+    question: "What is the capital of Slovenia?"
+    expected: []
+    gold_sparql: |
+      SELECT ?x WHERE { FILTER(false) }
+
+  - id: O02
+    type: out_of_scope
+    question: "In which year was SAP founded, and by whom?"
+    expected: []
+    gold_sparql: |
+      SELECT ?x WHERE { FILTER(false) }
+
+  - id: O03
+    type: out_of_scope
+    question: "What will the weather be in Walldorf tomorrow?"
+    expected: []
+    gold_sparql: |
+      SELECT ?x WHERE { FILTER(false) }

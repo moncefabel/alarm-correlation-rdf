@@ -20,10 +20,10 @@
   "statements": 182,
   "columns": 6490
  },
- "inferred_triples": 7462,
+ "inferred_triples": 7473,
  "shacl_conforms": true,
  "shacl_violations": 0,
- "triples": 53347,
+ "triples": 53358,
  "linker": "none",
  "view_linker": "lexical"
 }
