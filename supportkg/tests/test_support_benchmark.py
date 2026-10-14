@@ -69,3 +69,15 @@ def test_the_two_graphs_differ_exactly_by_the_owl_inferences():
     # the inverse direction is what the `inverse` questions ask for
     ask = f"ASK {{ <{SUP}View_M_PASSWORD_POLICY> <{SUP}hasColumn> ?c }}"
     assert full.query(ask).askAnswer and not bare.query(ask).askAnswer
+
+
+def test_inferred_ttl_lists_exactly_what_owl_added():
+    """explain.py reads out/inferred.ttl to tell an inferred triple from an
+    extracted one; it must be the difference between the two builds."""
+    paths = [*GRAPHS.values(), ROOT / "out" / "inferred.ttl"]
+    if not all(p.exists() for p in paths):
+        pytest.skip("graphs not built")
+    full, bare, inferred = Graph(), Graph(), Graph()
+    full.parse(paths[0]); bare.parse(paths[1]); inferred.parse(paths[2])
+    ground = lambda g: {t for t in g if not any(isinstance(x, BNode) for x in t)}  # noqa: E731
+    assert ground(inferred) == ground(full) - ground(bare)

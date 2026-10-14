@@ -134,7 +134,7 @@ pip install -r supportkg/requirements.txt
 git clone --depth 1 https://github.com/SAP-docs/sap-hana-cloud-hana-database \
     supportkg/data/sap-hana-cloud-hana-database
 python supportkg/src/collect.py                     # article records from the seed titles
-python supportkg/src/build.py                       # -> supportkg/out/graph.ttl, provenance.ttl, report.json
+python supportkg/src/build.py                       # -> supportkg/out/graph.ttl, provenance.ttl, inferred.ttl, report.json
 python supportkg/src/evaluate_links.py --show       # lexical alert -> view links against the gold list
 
 pip install sentence-transformers                   # optional: Hugging Face models (PyTorch)
@@ -205,7 +205,7 @@ told `hasColumn` exists in both cases, and in the second graph it returns
 nothing. The `inverse` bucket asks questions against the extracted direction
 ("which columns does M_PASSWORD_POLICY have?"). Prediction, written before the
 run: the inverse bucket drops on the no-inverse graph, the other buckets do
-not move.
+not move, and the checked arm recovers most of the drop.
 
 ```bash
 set -a; . ~/.config/claude.env; set +a          # or groq.env, see kgqa/.env.example
@@ -215,13 +215,57 @@ python kgqa/src/evaluate.py --domain support --model claude-haiku-5-5 \
 python kgqa/src/evaluate.py --domain support --model claude-haiku-5-5 \
     --topology both --seed 0 --ontology supportkg/out_noinv/graph.ttl \
     --out kgqa/results_support_noinv
+# the third arm: the orchestrator with the semantic check, on both graphs
+python kgqa/src/evaluate.py --domain support --model claude-haiku-5-5 \
+    --topology orchestrator_checked --seed 0
+python kgqa/src/evaluate.py --domain support --model claude-haiku-5-5 \
+    --topology orchestrator_checked --seed 0 --ontology supportkg/out_noinv/graph.ttl \
+    --out kgqa/results_support_noinv
 ```
+
+Two ways to the same goal, compared on the same questions: materialise the
+inverses so either direction works, or keep the graph lean and let the
+semantic check (`kgqa/src/semantic_check.py`) send a reversed triple back with
+its fix. On this graph the domains and ranges differ, so the type check sees
+every reversal.
 
 One run of one arm is about 110 000 input tokens (the schema is in every
 prompt), so about $0.03 with Claude Haiku 5.5 or gpt-oss-120b on a paid tier;
 the free Groq tier's daily quota holds about one arm-run.
 
 Results: pending.
+
+**Explainable answers** (`kgqa/src/explain.py`). Every answer the agents
+return on this graph is stored with the triples that justify it and where each
+one comes from. The query's WHERE clause is run again with every variable
+bound; the triples its patterns matched are the evidence (patterns under
+FILTER NOT EXISTS are left out: an absence has no source; a `p+` path is
+expanded link by link). Each evidence triple is then traced:
+
+| Origin | Shown as |
+|---|---|
+| extracted from an article, or predicted by the linker | page(s), method, confidence (`provenance.ttl`) |
+| added by an OWL axiom (`out/inferred.ttl`, written by the build) | the axiom, then the triple it was inferred from, traced in turn |
+| stated on a documentation page or in an article title | that page |
+| PPMS stand-in | "hand-written", since PPMS is internal |
+
+```
+$ python kgqa/scripts/explain_answer.py --id M01
+Question: Which view should be queried to investigate the alert addressed by knowledge article 1977207?
+Because:
+  Article_1977207 addresses Alert_55  [title-rule, confidence 1.0]
+      https://userapps.support.sap.com/sap/support/knowledge/en/1977207
+  Alert_55 investigatedWith View_M_CS_UNLOADS  [lexical-linker, confidence 0.457]
+      https://github.com/SAP-docs/.../m-cs-unloads-system-view-20ad86c.md
+      https://userapps.support.sap.com/sap/support/knowledge/en/1977207
+```
+
+An inferred link names its axiom: `View_M_PASSWORD_POLICY hasColumn ...
+[inferred: hasColumn owl:inverseOf columnOf]`, from the `columnOf` triple
+stated on the view's page. All 29 gold answers are fully sourced
+(`explain_answer.py --all`), and `evaluate.py` reports
+`explained_correct_rate`, the share of the agent's correct answers whose every
+evidence triple has a source.
 
 ## Data rules
 
@@ -239,6 +283,7 @@ synthetic (invented text, fake numbers).
   linkers, graph builder with provenance and OWL materialisation, link and
   extraction scoring
 - built: support benchmark (32 questions, gold checked on both graphs),
-  schema-first retrieval for the agents, the graph without inverses
+  schema-first retrieval for the agents, the graph without inverses,
+  explainable answers (evidence triples traced to pages or OWL axioms)
 - next: run the agents on both graphs; post-hoc linker experiments (no
   template, hybrid score, LLM re-ranking), reported as post-hoc

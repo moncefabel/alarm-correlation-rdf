@@ -28,6 +28,7 @@ import yaml
 sys.path.insert(0, str(Path(__file__).parent))
 
 from domains import DOMAINS  # noqa: E402
+from explain import Explainer  # noqa: E402
 from agents import build_orchestrator, build_react, register_schema, run  # noqa: E402
 from graph_store import GraphStore, answer_set  # noqa: E402
 from schema_context import SchemaIndex  # noqa: E402
@@ -238,6 +239,7 @@ TOPOLOGIES = {
     "orchestrator":          (build_orchestrator, {}),
     "react_typed":           (build_react, {"typed_hints": True}),
     "orchestrator_untyped":  (build_orchestrator, {"typed_hints": False}),
+    "orchestrator_checked":  (build_orchestrator, {"semantic_check": True}),
 }
 
 
@@ -247,13 +249,19 @@ def build_agent(topology: str, llm, schema: SchemaIndex, store: GraphStore, **fl
 
 
 def evaluate(topology: str, questions: list[dict], schema: SchemaIndex,
-             store: GraphStore, llm, checkpoint: Path | None = None, **flags) -> dict:
+             store: GraphStore, llm, checkpoint: Path | None = None,
+             explainer=None, **flags) -> dict:
     """Score one topology on the questions.
 
     With a checkpoint file, each question is appended as soon as it is scored
     and questions already in the file are skipped. A run interrupted by a
     provider outage or an exhausted daily quota resumes where it stopped
-    instead of starting over."""
+    instead of starting over.
+
+    With an explainer (explain.Explainer, for graphs that carry provenance),
+    every executed answer is stored with its evidence triples and their
+    sources, and the summary reports how many correct answers are fully
+    sourced."""
     agent = build_agent(topology, llm, schema, store, **flags)
     rows, traces = [], []
     done: dict[str, dict] = {}
@@ -294,10 +302,16 @@ def evaluate(topology: str, questions: list[dict], schema: SchemaIndex,
             "provenance_triples": len(tr.provenance),
             "tokens": tokens,
         })
-        traces.append(tr.__dict__)
+        trace = dict(tr.__dict__)
+        if explainer is not None:
+            ev = explainer.explain(tr.query) if tr.ok and tr.rows and not tr.refused else []
+            trace["evidence"] = [e.as_dict() for e in ev]
+            rows[-1]["evidence_triples"] = len(ev)
+            rows[-1]["explained"] = bool(ev) and all(e.sourced() for e in ev)
+        traces.append(trace)
         if checkpoint is not None:
             with checkpoint.open("a") as fh:
-                fh.write(json.dumps({"row": rows[-1], "trace": tr.__dict__},
+                fh.write(json.dumps({"row": rows[-1], "trace": trace},
                                     default=str) + "\n")
         print(f"  [{topology}] {q['id']:<8} F1={f:.2f} valid={tr.ok} "
               f"repairs={tr.repairs} calls={tr.llm_calls} tokens={tokens}")
@@ -330,6 +344,11 @@ def evaluate(topology: str, questions: list[dict], schema: SchemaIndex,
         sum(r["refused"] for r in oos) / len(oos), 4) if oos else None
     summary["false_refusal_rate"] = round(
         sum(r["refused"] for r in ins) / len(ins), 4) if ins else None
+    if explainer is not None:
+        correct = [r for r in ins if r["exact"]]
+        # share of correct answers whose every evidence triple has a source
+        summary["explained_correct_rate"] = round(
+            sum(r.get("explained", False) for r in correct) / len(correct), 4) if correct else None
     return {"summary": summary, "rows": rows, "traces": traces}
 
 
@@ -368,9 +387,10 @@ def main() -> None:
                     help="Graph file (ontology plus data) loaded in memory, and "
                          "read for the schema even when SPARQL_ENDPOINT is set.")
     ap.add_argument("--topology", default="both",
-                    choices=["both", "ablation", "all", *TOPOLOGIES],
+                    choices=["both", "ablation", "all", "checked", *TOPOLOGIES],
                     help="both: react and orchestrator. ablation: react_typed and "
-                         "orchestrator_untyped. all: the four arms.")
+                         "orchestrator_untyped. all: those four arms. checked: orchestrator "
+                         "and orchestrator_checked (semantic check).")
     ap.add_argument("--model", default="gpt-4o")
     ap.add_argument("--runs", type=int, default=1, help="Repeated runs, seeds 0..runs-1.")
     ap.add_argument("--seed", type=int, default=None,
@@ -401,7 +421,8 @@ def main() -> None:
 
     topos = {"both": ["react", "orchestrator"],
              "ablation": ["react_typed", "orchestrator_untyped"],
-             "all": list(TOPOLOGIES)}.get(args.topology, [args.topology])
+             "all": ["react", "orchestrator", "react_typed", "orchestrator_untyped"],
+             "checked": ["orchestrator", "orchestrator_checked"]}.get(args.topology, [args.topology])
     suffix = "_fullschema" if args.no_schema_retrieval else ""
     if args.aggregate:
         final = aggregate_dir(Path(args.out), topos, suffix)
@@ -416,6 +437,10 @@ def main() -> None:
     register_schema(schema)
     store = GraphStore(ttl_path=args.ontology)
     print(f"graph: {store.mode}\nschema: {len(schema.items)} items")
+    explainer = None
+    if Path(args.ontology).with_name("provenance.ttl").exists():
+        explainer = Explainer.for_graph(args.ontology)
+        print("explanations: evidence triples and sources stored with each answer")
 
     questions = yaml.safe_load(Path(args.questions).read_text())["questions"]
     if args.ids:
@@ -439,7 +464,8 @@ def main() -> None:
             tag = f"{t}{suffix}_run{seed}"
             partial = Path(args.out, f"{tag}.partial.jsonl")
             try:
-                res = evaluate(t, questions, schema, store, llm, checkpoint=partial, **flags)
+                res = evaluate(t, questions, schema, store, llm, checkpoint=partial,
+                               explainer=explainer, **flags)
             except BaseException:            # includes Ctrl+C
                 print(f"\nInterrupted. Progress is saved in {partial}; rerun the same "
                       "command to resume from the next question.")

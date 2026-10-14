@@ -81,13 +81,14 @@ def extract_all(records: list[Record], linker_factory=None) -> list[Extraction]:
     return [extract(r, linker) for r in records]
 
 
-def materialise(g: Graph, onto: Graph) -> int:
+def materialise(g: Graph, onto: Graph, record: Graph | None = None) -> int:
     """owl:inverseOf (both directions) and owl:SymmetricProperty, to a fixpoint
     of one step each, which is all these two rules need.
 
     Facts are read from the data AND from the ontology files, because the PPMS
     stand-in ships its instances there (versionOf, supportPackageOf...);
-    inferred triples go to the data."""
+    inferred triples go to the data, and to `record` when given, so an answer
+    can later say which of its triples were inferred rather than extracted."""
     added = 0
     pairs = [(p, q) for p, q in onto.subject_objects(OWL.inverseOf)]
     pairs += [(q, p) for p, q in pairs]
@@ -103,10 +104,14 @@ def materialise(g: Graph, onto: Graph) -> int:
         for s, o in facts(p):
             if new((o, q, s)):
                 g.add((o, q, s)); added += 1
+                if record is not None:
+                    record.add((o, q, s))
     for p in sym:
         for s, o in facts(p):
             if new((o, p, s)):
                 g.add((o, p, s)); added += 1
+                if record is not None:
+                    record.add((o, p, s))
     return added
 
 
@@ -268,10 +273,13 @@ def build_graph(records: list[Record], linker_factory=None, materialise_axioms: 
                     report["by_method"][f"{linker.method}-linker"] += 1
                     report["by_relation"]["investigatedWith"] += 1
 
-    report["inferred_triples"] = materialise(data, onto) if materialise_axioms else 0
+    inferred = Graph()
+    report["inferred_triples"] = materialise(data, onto, inferred) if materialise_axioms else 0
     full = onto + data
     for p, ns in (("sup", SUP), ("ppms", PPMS), ("skos", SKOS), ("prov", PROV), ("dct", DCTERMS)):
         full.bind(p, ns)
+        inferred.bind(p, ns)
+    report["inferred_graph"] = inferred
     return full, prov, report
 
 
@@ -322,6 +330,8 @@ def main() -> None:
     out = Path(args.out); out.mkdir(parents=True, exist_ok=True)
     graph.serialize(out / "graph.ttl", format="turtle")
     prov.serialize(out / "provenance.ttl", format="turtle")
+    inferred = report.pop("inferred_graph")
+    inferred.serialize(out / "inferred.ttl", format="turtle")   # which triples OWL added
     (out / "report.json").write_text(json.dumps(report, indent=1, default=dict))
     if not ok:
         (out / "shacl_report.txt").write_text(text)

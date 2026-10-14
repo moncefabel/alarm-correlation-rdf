@@ -125,7 +125,7 @@ the control flow differs, so the comparison isolates the topology.
   hand-written answer
 - symbolic gate rejecting IRIs absent from the graph before execution
 - runs on in-memory rdflib or Apache Jena Fuseki (`SPARQL_ENDPOINT`)
-- 172 offline tests, no API key required
+- 187 offline tests, no API key required
 - result (gpt-oss-120b, 3 runs, Fuseki): execution accuracy 0.885 for the
   orchestrator against 0.750 for ReAct, the whole gap on multi-hop causal and
   counterfactual questions, for 3.6 % more tokens
@@ -156,6 +156,12 @@ a PPMS-shaped product slice (a hand-written stand-in, since PPMS is internal).
   only 61 % of the needed IRIs into the prompt; a schema-first retrieval with
   entity names from `owl:hasKey` brings 100 %. Next: the agents on the graph
   with and without materialised OWL inverses
+- explainable answers: each answer comes with the triples that justify it,
+  each traced to the page it was extracted from (with method and confidence)
+  or to the OWL axiom that inferred it
+- a semantic query check (an ablation arm): each triple of a generated query is
+  checked against the ontology's domains and ranges before execution, and a
+  reversed triple is sent back with its fix
 - no scraping: SAP's support portal disallows crawlers, and the collector checks
   robots.txt and refuses. Details in [`supportkg/README.md`](supportkg/README.md)
 

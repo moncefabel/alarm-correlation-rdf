@@ -131,6 +131,8 @@ class S(TypedDict, total=False):
     steps: list[str]
     error: str
     refused: bool
+    error_kind: str       # "type" when only the semantic check failed
+    empty_retry: bool     # the empty-answer repair was used
 
 
 # --------------------------------------------------------------------------
@@ -222,10 +224,22 @@ def build_react(llm: LLM, schema: SchemaIndex, store: GraphStore,
 
 def build_orchestrator(llm: LLM, schema: SchemaIndex, store: GraphStore,
                        retrieve_schema: bool = True, scope_check: bool = True,
-                       typed_hints: bool = True, domain: Domain = ALARMS):
+                       typed_hints: bool = True, domain: Domain = ALARMS,
+                       semantic_check: bool = False):
     """typed_hints=False is the mirror ablation arm: the full orchestrated flow
     (classification and early refusal, gate, refine) without the
-    type-specific instruction."""
+    type-specific instruction.
+
+    semantic_check=True adds the ontology check of semantic_check.py: before
+    execution, every triple is checked against the domain and range of its
+    property (a reversed triple is sent back with the fix); after execution,
+    an empty answer to an in-scope question is sent back once with a hint.
+    On the last attempt a query that only fails the type check is executed
+    anyway, so a wrong check can cost a repair but never an answer."""
+    checker = None
+    if semantic_check:
+        from semantic_check import TypeChecker
+        checker = TypeChecker(schema.g)
     def classify(s: S) -> S:
         s.setdefault("steps", []).append("classify")
         if not scope_check:
@@ -259,12 +273,31 @@ def build_orchestrator(llm: LLM, schema: SchemaIndex, store: GraphStore,
             return s
         bad = hallucinated(s["query"], schema)
         ok, err = store.validate_syntax(s["query"])
+        s["error_kind"] = ""
         if bad:
             s["error"] = f"Unknown URIs not in ontology: {bad}"
         elif not ok:
             s["error"] = f"SyntaxError: {err}"
         else:
             s["error"] = ""
+            problems = checker.check(s["query"]) if checker is not None else []
+            if problems:
+                s["error"] = "Type check: " + " ".join(problems)
+                s["error_kind"] = "type"
+                s["steps"].append("type_error")
+        return s
+
+    def check_answer(s: S) -> S:
+        """Semantic check after execution: an empty answer gets one repair."""
+        s.setdefault("steps", []).append("check_answer")
+        s["error"] = ""
+        res = s["result"]
+        if res.ok and not res.rows and not s.get("empty_retry") \
+                and s.get("qtype") != "out_of_scope":
+            from semantic_check import EMPTY_HINT
+            s["error"] = EMPTY_HINT
+            s["empty_retry"] = True
+            s["steps"].append("empty_answer")
         return s
 
     def execute(s: S) -> S:
@@ -289,13 +322,18 @@ def build_orchestrator(llm: LLM, schema: SchemaIndex, store: GraphStore,
         if s.get("refused"):
             return END
         if s.get("error"):
-            return "refine" if s.get("repairs", 0) < MAX_REPAIRS else END
+            if s.get("repairs", 0) < MAX_REPAIRS:
+                return "refine"
+            return "execute" if s.get("error_kind") == "type" else END
         return "execute"
 
     def after_execute(s: S) -> str:
         if s["result"].ok:
-            return END
+            return "check_answer" if checker is not None else END
         return "refine" if s.get("repairs", 0) < MAX_REPAIRS else END
+
+    def after_check(s: S) -> str:
+        return "refine" if s.get("error") and s.get("repairs", 0) < MAX_REPAIRS else END
 
     g = StateGraph(S)
     for name, fn in [("classify", classify), ("link", link), ("generate", generate),
@@ -307,7 +345,13 @@ def build_orchestrator(llm: LLM, schema: SchemaIndex, store: GraphStore,
     g.add_edge("generate", "verify")
     g.add_conditional_edges("verify", after_verify,
                             {"execute": "execute", "refine": "refine", END: END})
-    g.add_conditional_edges("execute", after_execute, {"refine": "refine", END: END})
+    if checker is not None:
+        g.add_node("check_answer", check_answer)
+        g.add_conditional_edges("execute", after_execute,
+                                {"refine": "refine", "check_answer": "check_answer", END: END})
+        g.add_conditional_edges("check_answer", after_check, {"refine": "refine", END: END})
+    else:
+        g.add_conditional_edges("execute", after_execute, {"refine": "refine", END: END})
     g.add_edge("refine", "verify")
     return g.compile()
 

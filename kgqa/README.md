@@ -104,7 +104,7 @@ From the repository root:
 ```bash
 pip install -r kgqa/requirements.txt
 
-# offline tests: no API key, no network (172 tests)
+# offline tests: no API key, no network (187 tests)
 pytest kgqa/tests -q
 
 # benchmark against any OpenAI-compatible endpoint (OpenAI, Groq, Mistral, vLLM, Ollama)
@@ -189,11 +189,18 @@ kgqa/
 │   ├── schema_context.py   schema, undeclared predicates and entity linking
 │   ├── agents.py           the two topologies over shared primitives
 │   ├── evaluate.py         harness, metrics, repeated runs
+│   ├── domains.py          what the prompts say the graph is about (alarms, support)
+│   ├── explain.py          evidence triples of an answer and their sources
+│   ├── semantic_check.py   domain/range check of each triple, empty-answer hint
 │   └── direction.py        audit: causal property traversed the wrong way round
 ├── benchmark/questions.yaml
-├── tests/                  benchmark self-check, topologies, endpoint mode, LLM client, audit
+├── tests/                  benchmark self-check, topologies, endpoint mode, LLM client,
+│                           audit, domains, OWL variant, explanations
 ├── scripts/load_fuseki.sh
 ├── scripts/direction_audit.py
+├── scripts/retrieval_recall.py   gold IRIs that reach the prompt, no model called
+├── scripts/make_owl_variant.py   alarm graph with causedBy and symmetric correlatedWith
+├── scripts/explain_answer.py     why an answer is an answer, with sources
 ├── .env.example            provider settings template (copy to .env)
 └── docker-compose.yml
 ```
@@ -371,6 +378,37 @@ python kgqa/src/evaluate.py --model openai/gpt-oss-120b --reasoning-effort low \
     --ontology ontology/alarm_ontology_owl.ttl --topology both --seed 0 \
     --out kgqa/results_owl
 python kgqa/scripts/direction_audit.py --out kgqa/results_owl
+```
+
+### Next experiment: a semantic check
+
+The OWL variant removes the need to choose a direction; a check can instead
+catch the wrong choice. `orchestrator_checked` (`--topology checked` runs it
+next to `orchestrator`) adds two steps to the orchestrator, everything else
+unchanged:
+
+- before execution, every triple is checked against the `rdfs:domain` and
+  `rdfs:range` of its property (`src/semantic_check.py`; for an inverse
+  property they are read off its inverse). A reversed triple goes back to the
+  repair step with the fix, e.g. "sup:View_M_PASSWORD_POLICY sup:columnOf ?c
+  reads the property the wrong way round: sup:columnOf goes from a
+  sup:Column to a sup:SystemView. Fix: swap subject and object, or use
+  sup:hasColumn". This is the ontology-based query check of Allemang and
+  Sequeda (2024), whose "incorrect path" is our direction error;
+- after execution, an empty answer to an in-scope question goes back once with
+  a hint about direction. On the alarm graph this is the only signal: cause and
+  effect are both `net:Alarm`, so no type check can tell them apart.
+
+A wrong check cannot cost an answer: on the last attempt a query that only
+fails the type check is executed anyway. No gold query of either benchmark is
+flagged. Limit: neither benchmark has an in-scope question whose true answer is
+empty, so the empty-answer repair is never penalised here; a real deployment
+needs such questions in its test set.
+
+```bash
+python kgqa/src/evaluate.py --model openai/gpt-oss-120b --reasoning-effort low \
+    --topology orchestrator_checked --seed 0
+python kgqa/scripts/direction_audit.py
 ```
 
 ### Other graphs
