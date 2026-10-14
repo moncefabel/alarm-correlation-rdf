@@ -1,0 +1,33 @@
+[
+  {
+    "topology": "orchestrator_checked_zero",
+    "runs": 3,
+    "n": 32,
+    "execution_accuracy": 0.8542,
+    "execution_accuracy_std": 0.018,
+    "strict_execution_accuracy": 0.3854,
+    "strict_execution_accuracy_std": 0.0477,
+    "answer_f1": 0.875,
+    "answer_f1_std": 0.0225,
+    "query_validity_rate": 1,
+    "query_validity_rate_std": 0.0,
+    "hallucinated_uri_rate": 0.0,
+    "hallucinated_uri_rate_std": 0.0,
+    "mean_repairs": 0.1354,
+    "mean_repairs_std": 0.018,
+    "mean_tokens": 6952.3334,
+    "mean_tokens_std": 115.5229,
+    "total_tokens": 222474.6667,
+    "total_tokens_std": 3696.7343,
+    "mean_llm_calls": 2.0416,
+    "mean_llm_calls_std": 0.0181,
+    "mean_seconds": 4.5622,
+    "mean_seconds_std": 0.246,
+    "refusal_accuracy": 1.0,
+    "refusal_accuracy_std": 0.0,
+    "false_refusal_rate": 0.0,
+    "false_refusal_rate_std": 0.0,
+    "explained_correct_rate": 1.0,
+    "explained_correct_rate_std": 0.0
+  }
+]

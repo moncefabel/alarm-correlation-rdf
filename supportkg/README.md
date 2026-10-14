@@ -240,31 +240,25 @@ three times.
 
 ### Results (Claude Haiku 5.5, 3 runs, n = 32 questions)
 
-Execution accuracy, lenient, mean of three runs. One question is 3.1 points.
+Execution accuracy, lenient, averaged over runs. One question is 3.1 points.
 Haiku 5.5 does not accept `temperature: 0`, so runs are not deterministic: the
-same configuration run twice differs by up to 4 points (orchestrator on the
-graph without inverses: 0.781, then 0.823). Where an arm has two entries it was
-run in two batches.
+same configuration, run in two batches of three, differs by up to 4 points
+(orchestrator on the graph without inverses: 0.781, 0.823, 0.802). Runs from
+different batches (same code, same model) are pooled; the plain orchestrator
+was run in three batches (9 runs), the checked arms in two (6 runs), react
+once (3 runs).
 
-With the original scorer (the rule written before the runs):
+With the original scorer (the rule written before the runs), and with the
+answer-form scorer (`kgqa/src/answer_form.py`, written after the failure
+analysis below: a name counts for the gold entity it names; applied to every
+arm, no model call, `kgqa/scripts/rescore.py`):
 
-| arm | graph with inverses | graph without inverses |
-|---|---|---|
-| react | 0.896 | 0.802 |
-| orchestrator | 0.885; 0.896 | 0.781; 0.823 |
-| orchestrator_checked | 0.865 | 0.792 |
-| orchestrator_checked_zero (exploratory) | not run | 0.854 |
-
-With the answer-form scorer (`kgqa/src/answer_form.py`, written after the
-failure analysis below; a name counts for the gold entity it names; applied to
-every arm, no model call, `kgqa/scripts/rescore.py`):
-
-| arm | graph with inverses | graph without inverses |
-|---|---|---|
-| react | 0.969 | 0.823 |
-| orchestrator | 0.969; 0.979 | 0.781; 0.823 |
-| orchestrator_checked | 0.979 | 0.917 |
-| orchestrator_checked_zero (exploratory) | not run | 0.938 |
+| arm | runs | with inverses: original / answer-form | without inverses: original / answer-form |
+|---|---|---|---|
+| react | 3 | 0.896 / 0.969 | 0.802 / 0.823 |
+| orchestrator | 9 | 0.889 / 0.969 | 0.802 / 0.802 |
+| orchestrator_checked | 6 | 0.875 / 0.969 | 0.833 / 0.932 |
+| orchestrator_checked_zero (exploratory) | 6 | not run | 0.854 / 0.922 |
 
 The answer-form scorer helps the checked arms most because the plain agents on
 the graph without inverses fail by returning nothing, which no scorer can
@@ -273,17 +267,21 @@ answers as names.
 
 What the numbers say, and what they do not:
 
-- **Materialising the inverses helps, by about 15 points** with the
-  answer-form scorer (0.97 against 0.78 to 0.82) and 8 to 10 with the original.
-  The direction is the same in every batch.
-- **A query-time semantic check recovers part of that on the lean graph.**
-  The checked arm reaches 0.917 against 0.78 to 0.82 for the plain
-  orchestrator, about two thirds of the gap; with the zero-count repair 0.938,
-  about four fifths. On the graph with inverses the check adds nothing (0.979
-  against 0.969 to 0.979). The original scorer hides this: it scores the
-  checked arm at 0.792 because the repaired answers come back as names.
-  The checked arms cost about 16 % more tokens (7 300 against 6 300 per
-  question).
+- **Materialising the inverses helps, by about 17 points** with the
+  answer-form scorer (0.97 against 0.80) and about 9 with the original. The
+  direction is the same in every batch.
+- **A query-time semantic check recovers about three quarters of that on the
+  lean graph:** 0.93 against 0.80 for the plain orchestrator (answer-form
+  scorer), out of the 0.17 gap. On the graph with inverses it adds nothing
+  (0.969 for both). The original scorer hides this, because the repaired
+  answers come back as names. The checked arms cost about 16 % more tokens
+  (7 300 against 6 300 per question).
+- **The zero-count repair did not help once replicated.** In the first batch
+  it looked better (0.938 against 0.917); in the second it was worse (0.906
+  against 0.948). Pooled it is 0.92 against 0.93: no difference. The
+  mechanism works (the unit test, and A01 and A03 passing in the first batch),
+  but the check without it already gets there on most runs. Reported as a
+  negative result.
 - **The prediction written above was half right.** The checked arm does recover
   most of the loss. It was wrong that the `inverse` bucket would drop (0.89 on
   both graphs, react arm, original scorer): the loss on the lean graph is in
@@ -299,12 +297,12 @@ What the numbers say, and what they do not:
   in 96 answers, and every answer came with its evidence triples
   (`explained_correct_rate` 1.0, one run 0.987).
 
-Limits that matter: one model, one 32-question benchmark, three runs.
-The answer-form scorer and the zero-count repair were both written after
-seeing the failures on this same benchmark, so the numbers they produce are
-in-sample. They show what the failure analysis found; a held-out question set
-would be needed to claim they generalise. The original-scorer table is kept so
-nothing is lost by the change.
+Limits that matter: one model, one 32-question benchmark. The answer-form
+scorer and the zero-count repair were both written after seeing the failures
+on this same benchmark, so the numbers they produce are in-sample. They show
+what the failure analysis found; a held-out question set would be needed to
+claim they generalise. The original-scorer column is kept so nothing is lost
+by the change.
 
 Share of exact answers by question bucket, react arm, original scorer
 (L lookup, I inverse, M multihop, A aggregation, N negation, O out of scope):
@@ -330,7 +328,7 @@ causes, only one of which is a plain model error.
    gets nothing back, because on the lean graph only `columnOf` has triples.
    A COUNT over nothing returns one row, "0", so the empty-answer repair never
    fired on A01. `orchestrator_checked_zero` treats a lone COUNT of 0 as an
-   empty answer: A01 and A03 then pass in all three runs.
+   empty answer: A01 and A03 then passed in all three runs of the first batch. Over six runs it makes no measurable difference to the total.
 3. **A symmetric property that is not materialised (N04 without inverses).**
    `seeAlso` is symmetric in the ontology but stored in one direction. The
    agent trusts the ontology and checks one direction only, so it returns
@@ -352,6 +350,9 @@ python kgqa/scripts/rescore.py kgqa/results_support_noinv --graph supportkg/out_
 python kgqa/scripts/rescore.py kgqa/results_support_checked
 python kgqa/scripts/rescore.py kgqa/results_support_noinv_checked --graph supportkg/out_noinv/graph.ttl
 python kgqa/scripts/rescore.py kgqa/results_support_noinv_zero --graph supportkg/out_noinv/graph.ttl
+# the replication batch (checked and zero arms on the graph without inverses)
+python kgqa/scripts/rescore.py kgqa/results_support_rep
+python kgqa/scripts/rescore.py kgqa/results_support_noinv_rep --graph supportkg/out_noinv/graph.ttl
 python kgqa/src/evaluate.py --domain support --model claude-haiku-5-5 \
     --topology orchestrator_checked_zero --runs 3 --ontology supportkg/out_noinv/graph.ttl \
     --out kgqa/results_support_noinv_zero

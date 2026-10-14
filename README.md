@@ -154,11 +154,11 @@ a PPMS-shaped product slice (a hand-written stand-in, since PPMS is internal).
   benchmark (lookup, inverse, cross-source multi-hop, aggregation, negation,
   out of scope). At 7 000 entities the alarm graph's schema retrieval brings
   only 61 % of the needed IRIs into the prompt; a schema-first retrieval with
-  entity names from `owl:hasKey` brings 100 %. With Claude Haiku 5.5 (3 runs,
-  n = 32) the agents reach 0.97 execution accuracy on the graph with
-  materialised inverses and 0.78 to 0.82 without them; a query-time semantic
-  check recovers two thirds to four fifths of that gap (0.92 to 0.94). Both
-  scorers are reported; see [`supportkg/README.md`](supportkg/README.md) for what that does and does not show
+  entity names from `owl:hasKey` brings 100 %. With Claude Haiku 5.5 (n = 32, 3 to 9 runs per arm)
+  the agents reach 0.97 execution accuracy on the graph with materialised
+  inverses and 0.80 without them; a query-time semantic check recovers about
+  three quarters of that gap (0.93). Two scorers are reported, and the second
+  was written after seeing the failures, so it is in-sample; see [`supportkg/README.md`](supportkg/README.md) for what that does and does not show
 - explainable answers: each answer comes with the triples that justify it,
   each traced to the page it was extracted from (with method and confidence)
   or to the OWL axiom that inferred it
