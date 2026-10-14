@@ -143,3 +143,33 @@ def test_checked_arm_on_the_alarm_benchmark_with_a_perfect_model():
     s = evaluate("orchestrator_checked", T.QUESTIONS, schema, GraphStore(ttl_path=T.ONTOLOGY),
                  T.oracle, domain=ALARMS)["summary"]
     assert s["execution_accuracy"] == 1.0 and s["mean_repairs"] == 0.0
+
+
+@needs
+def test_a_count_of_zero_is_an_empty_answer_only_when_asked(support):
+    """Failure analysis of the first Haiku runs: on the graph without inverses,
+    `COUNT(?c) WHERE { view hasColumn ?c }` returns one row, "0", so the
+    empty-answer repair never fired. The zero-count arm sends it back once."""
+    schema, store = support
+    q = "How many columns does the monitoring view M_SAVEPOINTS have?"
+    wrong = P + "SELECT (COUNT(?c) AS ?n) WHERE { sup:View_M_SAVEPOINTS sup:hasColumn ?c }"
+    right = P + "SELECT (COUNT(?c) AS ?n) WHERE { ?c sup:columnOf sup:View_M_SAVEPOINTS }"
+
+    def model(system, user):
+        if system.startswith("Classify"):
+            return "aggregation"
+        return right if "count of 0" in user else wrong
+
+    plain = run(build_agent("orchestrator_checked", model, schema, store, domain=SUPPORT), q,
+                "orchestrator_checked", store)
+    assert plain.rows[0]["n"] == "0" and plain.repairs == 0           # the gap
+    zero = run(build_agent("orchestrator_checked_zero", model, schema, store, domain=SUPPORT), q,
+               "orchestrator_checked_zero", store)
+    assert zero.rows[0]["n"] == "27" and zero.repairs == 1 and "empty_answer" in zero.steps
+
+
+def test_zero_count_shape():
+    from semantic_check import zero_count
+    assert zero_count([{"n": "0"}]) and zero_count([{"n": "0.0"}])
+    assert not zero_count([]) and not zero_count([{"n": "3"}])
+    assert not zero_count([{"n": "0"}, {"n": "0"}]) and not zero_count([{"v": "M_DISKS"}])

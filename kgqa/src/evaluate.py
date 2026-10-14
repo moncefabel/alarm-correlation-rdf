@@ -240,6 +240,8 @@ TOPOLOGIES = {
     "react_typed":           (build_react, {"typed_hints": True}),
     "orchestrator_untyped":  (build_orchestrator, {"typed_hints": False}),
     "orchestrator_checked":  (build_orchestrator, {"semantic_check": True}),
+    # exploratory, added after the failure analysis of the first checked runs
+    "orchestrator_checked_zero": (build_orchestrator, {"semantic_check": True, "zero_counts": True}),
 }
 
 

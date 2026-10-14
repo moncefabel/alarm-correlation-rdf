@@ -225,7 +225,7 @@ def build_react(llm: LLM, schema: SchemaIndex, store: GraphStore,
 def build_orchestrator(llm: LLM, schema: SchemaIndex, store: GraphStore,
                        retrieve_schema: bool = True, scope_check: bool = True,
                        typed_hints: bool = True, domain: Domain = ALARMS,
-                       semantic_check: bool = False):
+                       semantic_check: bool = False, zero_counts: bool = False):
     """typed_hints=False is the mirror ablation arm: the full orchestrated flow
     (classification and early refusal, gate, refine) without the
     type-specific instruction.
@@ -235,7 +235,11 @@ def build_orchestrator(llm: LLM, schema: SchemaIndex, store: GraphStore,
     property (a reversed triple is sent back with the fix); after execution,
     an empty answer to an in-scope question is sent back once with a hint.
     On the last attempt a query that only fails the type check is executed
-    anyway, so a wrong check can cost a repair but never an answer."""
+    anyway, so a wrong check can cost a repair but never an answer.
+    zero_counts=True also treats a lone COUNT of 0 as an empty answer (found
+    in the failure analysis: on a graph without inverses an aggregation over a
+    property with no triples returns 1 row, "0", which is not "no rows").
+    """
     checker = None
     if semantic_check:
         from semantic_check import TypeChecker
@@ -292,12 +296,13 @@ def build_orchestrator(llm: LLM, schema: SchemaIndex, store: GraphStore,
         s.setdefault("steps", []).append("check_answer")
         s["error"] = ""
         res = s["result"]
-        if res.ok and not res.rows and not s.get("empty_retry") \
-                and s.get("qtype") != "out_of_scope":
-            from semantic_check import EMPTY_HINT
-            s["error"] = EMPTY_HINT
-            s["empty_retry"] = True
-            s["steps"].append("empty_answer")
+        if res.ok and not s.get("empty_retry") and s.get("qtype") != "out_of_scope":
+            from semantic_check import EMPTY_HINT, ZERO_HINT, zero_count
+            hint = EMPTY_HINT if not res.rows else (ZERO_HINT if zero_counts and zero_count(res.rows) else "")
+            if hint:
+                s["error"] = hint
+                s["empty_retry"] = True
+                s["steps"].append("empty_answer")
         return s
 
     def execute(s: S) -> S:

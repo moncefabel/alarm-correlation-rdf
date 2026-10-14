@@ -104,7 +104,7 @@ From the repository root:
 ```bash
 pip install -r kgqa/requirements.txt
 
-# offline tests: no API key, no network (187 tests)
+# offline tests: no API key, no network (192 tests)
 pytest kgqa/tests -q
 
 # benchmark against any OpenAI-compatible endpoint (OpenAI, Groq, Mistral, vLLM, Ollama)
@@ -379,6 +379,19 @@ python kgqa/src/evaluate.py --model openai/gpt-oss-120b --reasoning-effort low \
     --out kgqa/results_owl
 python kgqa/scripts/direction_audit.py --out kgqa/results_owl
 ```
+
+### Scoring and arm added after the first SAP results
+
+Reading the queries behind the wrong answers of the first Claude Haiku runs
+(`scripts/failure_report.py`) found two things, both added after seeing the
+results and so reported next to the original numbers, never instead of them:
+
+- `src/answer_form.py` and `scripts/rescore.py`: an agent that returns the
+  names of the gold entities (PROPERTY, VALUE) instead of the entities is
+  right, and the first scorer called it wrong. The rescorer reads the saved
+  traces and scores them with and without the answer-form rule; no model call.
+- `orchestrator_checked_zero`: a lone `COUNT` of 0 counts as an empty answer
+  for the semantic check's repair. Exploratory; see `supportkg/README.md`.
 
 ### Next experiment: a semantic check
 

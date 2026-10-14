@@ -211,16 +211,18 @@ not move, and the checked arm recovers most of the drop.
 set -a; . ~/.config/claude.env; set +a          # or groq.env, see kgqa/.env.example
 unset SPARQL_ENDPOINT                            # both graphs run in memory
 python kgqa/src/evaluate.py --domain support --model claude-haiku-5-5 \
-    --topology both --seed 0                                  # -> kgqa/results_support
+    --topology both --runs 3                                  # -> kgqa/results_support
 python kgqa/src/evaluate.py --domain support --model claude-haiku-5-5 \
-    --topology both --seed 0 --ontology supportkg/out_noinv/graph.ttl \
+    --topology both --runs 3 --ontology supportkg/out_noinv/graph.ttl \
     --out kgqa/results_support_noinv
 # the third arm: the orchestrator with the semantic check, on both graphs
 python kgqa/src/evaluate.py --domain support --model claude-haiku-5-5 \
-    --topology orchestrator_checked --seed 0
+    --topology checked --runs 3 --out kgqa/results_support_checked
 python kgqa/src/evaluate.py --domain support --model claude-haiku-5-5 \
-    --topology orchestrator_checked --seed 0 --ontology supportkg/out_noinv/graph.ttl \
-    --out kgqa/results_support_noinv
+    --topology checked --runs 3 --ontology supportkg/out_noinv/graph.ttl \
+    --out kgqa/results_support_noinv_checked
+# what the agents wrote for the questions they got wrong
+python kgqa/scripts/failure_report.py kgqa/results_support --ids I01,M02,M03
 ```
 
 Two ways to the same goal, compared on the same questions: materialise the
@@ -229,11 +231,134 @@ semantic check (`kgqa/src/semantic_check.py`) send a reversed triple back with
 its fix. On this graph the domains and ranges differ, so the type check sees
 every reversal.
 
-One run of one arm is about 110 000 input tokens (the schema is in every
-prompt), so about $0.03 with Claude Haiku 5.5 or gpt-oss-120b on a paid tier;
-the free Groq tier's daily quota holds about one arm-run.
+One run of one arm is about 200 000 tokens (32 questions, about 6 400 each,
+the schema is in every prompt): about one cent with Claude Haiku 5.5, so the
+whole experiment below cost under 25 cents. Haiku 5.5 refuses the
+`temperature` setting, so the runs are not deterministic (the evaluation
+prints a notice and uses the provider's default); that is why each arm ran
+three times.
 
-Results: pending.
+### Results (Claude Haiku 5.5, 3 runs, n = 32 questions)
+
+Execution accuracy, lenient, mean of three runs. One question is 3.1 points.
+Haiku 5.5 does not accept `temperature: 0`, so runs are not deterministic: the
+same configuration run twice differs by up to 4 points (orchestrator on the
+graph without inverses: 0.781, then 0.823). Where an arm has two entries it was
+run in two batches.
+
+With the original scorer (the rule written before the runs):
+
+| arm | graph with inverses | graph without inverses |
+|---|---|---|
+| react | 0.896 | 0.802 |
+| orchestrator | 0.885; 0.896 | 0.781; 0.823 |
+| orchestrator_checked | 0.865 | 0.792 |
+| orchestrator_checked_zero (exploratory) | not run | 0.854 |
+
+With the answer-form scorer (`kgqa/src/answer_form.py`, written after the
+failure analysis below; a name counts for the gold entity it names; applied to
+every arm, no model call, `kgqa/scripts/rescore.py`):
+
+| arm | graph with inverses | graph without inverses |
+|---|---|---|
+| react | 0.969 | 0.823 |
+| orchestrator | 0.969; 0.979 | 0.781; 0.823 |
+| orchestrator_checked | 0.979 | 0.917 |
+| orchestrator_checked_zero (exploratory) | not run | 0.938 |
+
+The answer-form scorer helps the checked arms most because the plain agents on
+the graph without inverses fail by returning nothing, which no scorer can
+credit, while the checked arms repair the query and then return correct
+answers as names.
+
+What the numbers say, and what they do not:
+
+- **Materialising the inverses helps, by about 15 points** with the
+  answer-form scorer (0.97 against 0.78 to 0.82) and 8 to 10 with the original.
+  The direction is the same in every batch.
+- **A query-time semantic check recovers part of that on the lean graph.**
+  The checked arm reaches 0.917 against 0.78 to 0.82 for the plain
+  orchestrator, about two thirds of the gap; with the zero-count repair 0.938,
+  about four fifths. On the graph with inverses the check adds nothing (0.979
+  against 0.969 to 0.979). The original scorer hides this: it scores the
+  checked arm at 0.792 because the repaired answers come back as names.
+  The checked arms cost about 16 % more tokens (7 300 against 6 300 per
+  question).
+- **The prediction written above was half right.** The checked arm does recover
+  most of the loss. It was wrong that the `inverse` bucket would drop (0.89 on
+  both graphs, react arm, original scorer): the loss on the lean graph is in
+  lookup, aggregation and negation questions, for the reasons below.
+- **The orchestrator does not beat react here.** It adds one call per question
+  and no accuracy.
+- **Strict accuracy is about 0.40 and lenient about 0.90.** Strict requires
+  every projected value to equal the gold set; Haiku adds a name or label
+  column next to the entity, which the lenient rule (best column) does not
+  penalise. Both are reported.
+- **Safety numbers are clean:** every query valid, no invented URI, refusal
+  accuracy 1.0 on the three out-of-scope questions, at most one false refusal
+  in 96 answers, and every answer came with its evidence triples
+  (`explained_correct_rate` 1.0, one run 0.987).
+
+Limits that matter: one model, one 32-question benchmark, three runs.
+The answer-form scorer and the zero-count repair were both written after
+seeing the failures on this same benchmark, so the numbers they produce are
+in-sample. They show what the failure analysis found; a held-out question set
+would be needed to claim they generalise. The original-scorer table is kept so
+nothing is lost by the change.
+
+Share of exact answers by question bucket, react arm, original scorer
+(L lookup, I inverse, M multihop, A aggregation, N negation, O out of scope):
+
+| graph | L | I | M | A | N | O |
+|---|---|---|---|---|---|---|
+| with inverses | 1.00 | 0.89 | 0.67 | 1.00 | 1.00 | 1.00 |
+| without inverses | 0.83 | 0.89 | 0.75 | 0.67 | 0.75 | 1.00 |
+
+#### Why the answers fail
+
+Read from the saved queries (`kgqa/scripts/failure_report.py`). Four different
+causes, only one of which is a plain model error.
+
+1. **The answer is right, the form is not (I01, M02).** The agent returns the
+   column *names* (PROPERTY, VALUE, UNLOAD_TIME) where the gold answer is the
+   column *entities*. The original scorer maps an `rdfs:label` to its entity,
+   but the label is "PROPERTY column of M_PASSWORD_POLICY" and the bare name
+   PROPERTY is shared by many columns. A benchmark artefact worth 2 of 32
+   questions in every run, fixed by the answer-form scorer.
+2. **The data does not hold what the ontology promises (L06, A01, A03 without
+   inverses).** The agent reads the ontology, correctly uses `hasColumn`, and
+   gets nothing back, because on the lean graph only `columnOf` has triples.
+   A COUNT over nothing returns one row, "0", so the empty-answer repair never
+   fired on A01. `orchestrator_checked_zero` treats a lone COUNT of 0 as an
+   empty answer: A01 and A03 then pass in all three runs.
+3. **A symmetric property that is not materialised (N04 without inverses).**
+   `seeAlso` is symmetric in the ontology but stored in one direction. The
+   agent trusts the ontology and checks one direction only, so it returns
+   SET_TRANSACTION_AUTOCOMMIT_DDL as having no link when the link exists the
+   other way (F1 0.8). This is the case materialisation exists for, and the
+   check does not catch it: the wrong answer is not empty.
+4. **A real ontology defect (M03).** `seeAlso` is declared with domain and
+   range `DocumentationTopic`, but the data links views and statements. The
+   agent honours the declaration, adds `?page a sup:DocumentationTopic`, and
+   gets nothing; one run wrote a comment noting the gap. The fix is in the
+   ontology (widen the domain and range, or make views and statements
+   subclasses of `DocumentationTopic`), not in the agent. Not fixed: it changes
+   the graph, so it needs a rebuild and fresh runs. With inverses, it is the
+   one systematic error left.
+
+```bash
+python kgqa/scripts/rescore.py kgqa/results_support
+python kgqa/scripts/rescore.py kgqa/results_support_noinv --graph supportkg/out_noinv/graph.ttl
+python kgqa/scripts/rescore.py kgqa/results_support_checked
+python kgqa/scripts/rescore.py kgqa/results_support_noinv_checked --graph supportkg/out_noinv/graph.ttl
+python kgqa/scripts/rescore.py kgqa/results_support_noinv_zero --graph supportkg/out_noinv/graph.ttl
+python kgqa/src/evaluate.py --domain support --model claude-haiku-5-5 \
+    --topology orchestrator_checked_zero --runs 3 --ontology supportkg/out_noinv/graph.ttl \
+    --out kgqa/results_support_noinv_zero
+```
+
+Not shown: other models, a held-out benchmark, a baseline without the
+knowledge graph (a vector-RAG baseline is the first thing to add).
 
 **Explainable answers** (`kgqa/src/explain.py`). Every answer the agents
 return on this graph is stored with the triples that justify it and where each

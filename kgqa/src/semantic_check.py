@@ -36,6 +36,24 @@ EMPTY_HINT = ("The query ran without error but returned no rows, and the questio
               "answer really is empty, return the same query unchanged.")
 
 
+ZERO_HINT = ("The query ran without error but its answer is a count of 0, and the "
+             "question expects a non-empty answer. Check the direction of every triple: "
+             "which entity is the subject and which the object of each property, given "
+             "its domain and range, and whether an inverse property or the property "
+             "actually used in the data reads more naturally. If the true count is "
+             "zero, return the same query unchanged.")
+
+
+def zero_count(rows: list[dict]) -> bool:
+    """One row whose every value is the number 0: the shape of COUNT over nothing."""
+    if len(rows) != 1 or not rows[0]:
+        return False
+    try:
+        return all(float(str(v)) == 0 for v in rows[0].values())
+    except ValueError:
+        return False
+
+
 class TypeChecker:
     def __init__(self, g: Graph):
         self.g = g
