@@ -90,6 +90,31 @@ def test_every_arm_scores_perfectly_on_the_support_benchmark_with_a_perfect_mode
     assert s["hallucinated_uri_rate"] == 0.0
 
 
+HELDOUT = yaml.safe_load((ROOT / "supportkg" / "benchmark" / "heldout.yaml").read_text())["questions"]
+
+
+@needs_graph
+@pytest.mark.parametrize("arm", ["react", "orchestrator", "orchestrator_checked"])
+def test_heldout_set_runs_end_to_end_with_a_perfect_model(support, arm):
+    schema, store = support
+    by_text = {q["question"]: q for q in HELDOUT}
+
+    def oracle(system, user):
+        q = by_text[re.search(r"Question: (.+?)(?:\n|$)", user).group(1).strip()]
+        if system.startswith("Classify"):
+            return CLASS_OF.get(q["type"], q["type"])
+        return REFUSAL if q["type"] == "out_of_scope" else q["gold_sparql"]
+    s = evaluate(arm, HELDOUT, schema, store, oracle, domain=SUPPORT)["summary"]
+    assert s["execution_accuracy"] == 1.0 and s["refusal_accuracy"] == 1.0
+
+
+@needs_graph
+def test_heldout_gold_iris_all_reach_the_prompt(support):
+    from retrieval_recall import recall
+    schema, _ = support
+    assert recall(schema, HELDOUT)["iri_recall"] == 1.0
+
+
 @needs_graph
 def test_support_prompts_carry_the_support_profile(support):
     schema, store = support

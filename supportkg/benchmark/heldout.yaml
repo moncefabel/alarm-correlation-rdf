@@ -1,0 +1,210 @@
+# Held-out benchmark on supportkg/out/graph.ttl, written on 15 October 2026.
+#
+# Why it exists. The 32 questions of questions.yaml were used to read the
+# agents' failures, and two things were built from that reading: the
+# answer-form scorer (kgqa/src/answer_form.py) and the zero-count repair arm.
+# Numbers measured with them on those 32 questions are in-sample. These 22
+# questions were written after that analysis and before any agent saw them;
+# the scorer, the prompts and the arms are frozen as they were when this file
+# was committed. Nothing may be changed in response to results on this set.
+#
+# Same format, same rules as questions.yaml: gold queries use only the
+# asserted direction, and supportkg/tests/test_support_benchmark.py checks
+# that each returns `expected` on both graphs. Entities differ from the
+# development set wherever the graph allows (new views, alerts, articles,
+# categories); six questions reuse a development template on new entities
+# (H09, H10, H13, H14, H17 and the inverse lookups), the others are new
+# shapes (H08, H11, H12, H15, H16, H18, H19). H09 and H11 rely on predicted
+# alert-to-view links of alert 25, which the gold list confirms for
+# M_CONNECTIONS; H07, H12, H16 and H19 read the predicted links as they are.
+#
+# Predictions, written before the runs (Claude Haiku 5.5, 3 runs per arm,
+# answer-form scorer as the primary measure, original scorer reported too):
+#   P1  materialising the inverses is worth at least 10 points for the plain
+#       orchestrator (development set: 17);
+#   P2  on the graph without inverses, the semantic check recovers at least
+#       half of that gap (development set: about three quarters);
+#   P3  on the graph with inverses, the check is within one question of the
+#       plain orchestrator (development set: equal).
+#
+# Buckets: lookup, inverse, multihop, aggregation, negation, out_of_scope,
+# as in questions.yaml.
+
+questions:
+
+  - id: H01
+    type: lookup
+    question: "What is the data type of the REASON column of M_CS_UNLOADS?"
+    expected: ["NVARCHAR(16)"]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      SELECT ?t WHERE { ?c sup:columnOf sup:View_M_CS_UNLOADS ; sup:columnName "REASON" ; sup:dataType ?t . }
+
+  - id: H02
+    type: lookup
+    question: "In which statement category does the SAP HANA SQL reference list CREATE WORKLOAD CLASS?"
+    expected: ["Workload Management"]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      SELECT ?c WHERE { sup:Statement_CREATE_WORKLOAD_CLASS sup:statementCategory ?c . }
+
+  - id: H03
+    type: lookup
+    question: "What is the number of the SAP HANA alert called License expiry?"
+    expected: ["31"]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+      SELECT ?n WHERE { ?a rdfs:label "License expiry" ; sup:alertNumber ?n . }
+
+  - id: H04
+    type: lookup
+    question: "Which software component does the support package SAP HANA DATABASE 2.0 SPS 07 belong to?"
+    expected: ["SC_HANA_DB_2_0"]
+    gold_sparql: |
+      PREFIX ppms: <http://example.org/ppms#>
+      SELECT ?c WHERE { ppms:SP_HANA_DB_2_0_SPS07 ppms:supportPackageOf ?c . }
+
+  - id: H05
+    type: inverse
+    question: "Which columns does the monitoring view M_EFFECTIVE_PASSWORD_POLICY have?"
+    expected: ["Column_M_EFFECTIVE_PASSWORD_POLICY__PROPERTY", "Column_M_EFFECTIVE_PASSWORD_POLICY__USER_NAME", "Column_M_EFFECTIVE_PASSWORD_POLICY__VALUE"]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      SELECT ?c WHERE { ?c sup:columnOf sup:View_M_EFFECTIVE_PASSWORD_POLICY . }
+
+  - id: H06
+    type: inverse
+    question: "Which knowledge article addresses alert 31?"
+    expected: ["Article_1899480"]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      SELECT ?k WHERE { ?k sup:addresses sup:Alert_31 . }
+
+  - id: H07
+    type: inverse
+    question: "Which alerts can be investigated with the view M_BACKUP_CATALOG?"
+    expected: ["Alert_35", "Alert_36", "Alert_37", "Alert_38", "Alert_65"]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      SELECT ?a WHERE { ?a sup:investigatedWith sup:View_M_BACKUP_CATALOG . }
+
+  - id: H08
+    type: inverse
+    question: "Which product versions include the software component SAP HANA DATABASE 2.0?"
+    expected: ["PV_HANA_Platform_2_0"]
+    gold_sparql: |
+      PREFIX ppms: <http://example.org/ppms#>
+      SELECT ?v WHERE { ?v ppms:includesComponent ppms:SC_HANA_DB_2_0 . }
+
+  - id: H09
+    type: multihop
+    question: "Knowledge article 1910159 addresses an alert. Which views help investigate that alert?"
+    expected: ["View_APPLICATION_CONNECTION_HISTORY", "View_M_CONNECTIONS"]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      SELECT ?v WHERE { sup:Article_1910159 sup:addresses ?a . ?a sup:investigatedWith ?v . }
+
+  - id: H10
+    type: multihop
+    question: "Which knowledge article covers the alert that is investigated with the view M_SERVICE_MEMORY?"
+    expected: ["Article_1900257"]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      SELECT ?k WHERE { ?a sup:investigatedWith sup:View_M_SERVICE_MEMORY . ?k sup:addresses ?a . }
+
+  - id: H11
+    type: multihop
+    question: "Which SQL statements are linked as see also with the views used to investigate alert 25?"
+    expected: ["Statement_CONNECT"]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      SELECT DISTINCT ?s WHERE { sup:Alert_25 sup:investigatedWith ?v . ?s a sup:SQLStatement .
+        { ?v sup:seeAlso ?s } UNION { ?s sup:seeAlso ?v } }
+
+  - id: H12
+    type: multihop
+    question: "Which knowledge articles address the alerts that can be investigated with the view M_BACKUP_CATALOG?"
+    expected: ["Article_1900728", "Article_1900730", "Article_1900788", "Article_1900795", "Article_2081845"]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      SELECT DISTINCT ?k WHERE { ?a sup:investigatedWith sup:View_M_BACKUP_CATALOG . ?k sup:addresses ?a . }
+
+  - id: H13
+    type: aggregation
+    question: "How many columns does the monitoring view M_CONNECTIONS have?"
+    expected: ["48"]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      SELECT (COUNT(?c) AS ?n) WHERE { ?c sup:columnOf sup:View_M_CONNECTIONS . }
+
+  - id: H14
+    type: aggregation
+    question: "How many SQL statements belong to the Access Control category?"
+    expected: ["40"]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      SELECT (COUNT(?s) AS ?n) WHERE { ?s sup:statementCategory "Access Control" . }
+
+  - id: H15
+    type: aggregation
+    question: "Which statement category contains the fewest SQL statements?"
+    expected: ["SQLScript"]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      SELECT ?c WHERE { ?s sup:statementCategory ?c . } GROUP BY ?c ORDER BY ASC(COUNT(?s)) LIMIT 1
+
+  - id: H16
+    type: aggregation
+    question: "Which view is used to investigate the most alerts?"
+    expected: ["View_M_BACKUP_CATALOG"]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      SELECT ?v WHERE { ?a sup:investigatedWith ?v . } GROUP BY ?v ORDER BY DESC(COUNT(?a)) LIMIT 1
+
+  - id: H17
+    type: negation
+    question: "Which Session Management statements have no see also link in the documentation?"
+    expected: ["Statement_UNSET_USERGROUP"]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      SELECT ?s WHERE { ?s sup:statementCategory "Session Management" .
+        FILTER NOT EXISTS { { ?s sup:seeAlso ?x } UNION { ?x sup:seeAlso ?s } } }
+
+  - id: H18
+    type: negation
+    question: "Which knowledge articles mention an alert but address none?"
+    expected: ["Article_3310156"]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      SELECT DISTINCT ?k WHERE { ?k sup:mentionsAlert ?a . FILTER NOT EXISTS { ?k sup:addresses ?x } }
+
+  - id: H19
+    type: negation
+    question: "Which views used to investigate an alert have no see also link in the documentation?"
+    expected: ["View_M_SQL_PLAN_CACHE_AUTO_RECOMPILATION_STATISTICS"]
+    gold_sparql: |
+      PREFIX sup: <http://example.org/sapsupport#>
+      SELECT DISTINCT ?v WHERE { ?a sup:investigatedWith ?v .
+        FILTER NOT EXISTS { { ?v sup:seeAlso ?x } UNION { ?x sup:seeAlso ?v } } }
+
+  - id: H20
+    type: out_of_scope
+    question: "Who is the current CEO of SAP?"
+    expected: []
+    gold_sparql: |
+      SELECT ?x WHERE { FILTER(false) }
+
+  - id: H21
+    type: out_of_scope
+    question: "How do I reset a forgotten Windows password?"
+    expected: []
+    gold_sparql: |
+      SELECT ?x WHERE { FILTER(false) }
+
+  - id: H22
+    type: out_of_scope
+    question: "Which laptop is best for programming in Python?"
+    expected: []
+    gold_sparql: |
+      SELECT ?x WHERE { FILTER(false) }

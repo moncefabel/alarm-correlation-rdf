@@ -361,6 +361,47 @@ python kgqa/src/evaluate.py --domain support --model claude-haiku-5-5 \
 Not shown: other models, a held-out benchmark, a baseline without the
 knowledge graph (a vector-RAG baseline is the first thing to add).
 
+### Held-out set and a baseline without SPARQL
+
+Two checks on the results above, prepared on 15 October before any run:
+
+**Held-out questions** (`benchmark/heldout.yaml`, 22 questions). The
+development set was used to read failures and to build the answer-form scorer;
+these questions were written afterwards and no agent has seen them. Scorer,
+prompts and arms are frozen. The file states three predictions before the run:
+P1, materialising the inverses is worth at least 10 points for the plain
+orchestrator; P2, on the graph without inverses the semantic check recovers at
+least half of that gap; P3, with inverses the check is within one question of
+the plain orchestrator. Gold IRIs all reach the prompt (retrieval recall 1.0,
+checked by a test), so a failure is the agent's, not the retrieval's.
+
+**A baseline without SPARQL** (`kgqa/src/rag_baseline.py`). Every view,
+statement, article, alert and product item of the graph is written out as a
+documentation page (description, columns with types, links in both
+directions); BM25 retrieves five pages; the model answers from them as a JSON
+list. The pages hold everything the agents can query, so the comparison
+isolates the query step: reading retrieved text against querying the graph.
+Expected weak spots, from the retrieval alone: questions over the whole graph
+(the most, the fewest, which have none), where the needed pages are not
+among the five retrieved. `--k 0` is the closed-book baseline: the model
+alone, no pages.
+
+```bash
+set -a; . ~/.config/claude.env; set +a; unset SPARQL_ENDPOINT
+H=supportkg/benchmark/heldout.yaml
+python kgqa/src/evaluate.py --domain support --model claude-haiku-5-5 --questions $H \
+    --topology checked --runs 3 --out kgqa/results_heldout
+python kgqa/src/evaluate.py --domain support --model claude-haiku-5-5 --questions $H \
+    --topology checked --runs 3 --ontology supportkg/out_noinv/graph.ttl --out kgqa/results_heldout_noinv
+python kgqa/src/rag_baseline.py --runs 3 --out kgqa/results_rag
+python kgqa/src/rag_baseline.py --runs 3 --questions $H --out kgqa/results_rag_heldout
+python kgqa/src/rag_baseline.py --k 0 --runs 1 --out kgqa/results_closedbook
+python kgqa/scripts/rescore.py kgqa/results_heldout --questions $H
+python kgqa/scripts/rescore.py kgqa/results_heldout_noinv --questions $H --graph supportkg/out_noinv/graph.ttl
+```
+
+Results: pending.
+
 **Explainable answers** (`kgqa/src/explain.py`). Every answer the agents
 return on this graph is stored with the triples that justify it and where each
 one comes from. The query's WHERE clause is run again with every variable

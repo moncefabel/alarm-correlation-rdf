@@ -17,6 +17,7 @@ from rdflib import BNode, Graph
 from conftest import ROOT
 
 QUESTIONS = yaml.safe_load((ROOT / "benchmark" / "questions.yaml").read_text())["questions"]
+HELDOUT = yaml.safe_load((ROOT / "benchmark" / "heldout.yaml").read_text())["questions"]
 GRAPHS = {"materialised": ROOT / "out" / "graph.ttl",
           "no_inverses": ROOT / "out_noinv" / "graph.ttl"}
 SUP = "http://example.org/sapsupport#"
@@ -42,12 +43,24 @@ def test_gold_query_returns_expected_answer(graph, q):
     assert answers(graph, q["gold_sparql"]) == sorted(q["expected"])
 
 
-def test_ids_unique_and_every_bucket_represented():
-    ids = [q["id"] for q in QUESTIONS]
+@pytest.mark.parametrize("q", HELDOUT, ids=[q["id"] for q in HELDOUT])
+def test_heldout_gold_query_returns_expected_answer(graph, q):
+    assert answers(graph, q["gold_sparql"]) == sorted(q["expected"])
+
+
+@pytest.mark.parametrize("qs", [QUESTIONS, HELDOUT], ids=["development", "heldout"])
+def test_ids_unique_and_every_bucket_represented(qs):
+    ids = [q["id"] for q in qs]
     assert len(ids) == len(set(ids))
-    counts = Counter(q["type"] for q in QUESTIONS)
+    counts = Counter(q["type"] for q in qs)
     for bucket in ("lookup", "inverse", "multihop", "aggregation", "negation", "out_of_scope"):
         assert counts[bucket] >= 3, f"{bucket}: {counts[bucket]}"
+
+
+def test_heldout_questions_are_new():
+    dev = {q["question"].lower() for q in QUESTIONS}
+    assert not dev & {q["question"].lower() for q in HELDOUT}
+    assert not {q["id"] for q in QUESTIONS} & {q["id"] for q in HELDOUT}
 
 
 def test_the_two_graphs_differ_exactly_by_the_owl_inferences():

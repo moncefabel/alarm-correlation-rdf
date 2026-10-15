@@ -31,12 +31,13 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("results", help="A results directory, e.g. kgqa/results_support")
     ap.add_argument("--domain", default="support", choices=sorted(DOMAINS))
+    ap.add_argument("--questions", default=None, help="Default: the domain's benchmark.")
     ap.add_argument("--arm", default=None, help="Only this arm, e.g. orchestrator.")
     ap.add_argument("--ids", default="", help="Comma-separated question ids; default: every failure.")
     ap.add_argument("--rows", type=int, default=6, help="Rows shown per answer.")
     args = ap.parse_args()
     d = DOMAINS[args.domain]
-    questions = {q["id"]: q for q in yaml.safe_load((ROOT / d.questions).read_text())["questions"]}
+    questions = {q["id"]: q for q in yaml.safe_load((ROOT / (args.questions or d.questions)).read_text())["questions"]}
     wanted = [i for i in args.ids.split(",") if i]
     runs = sorted(Path(args.results).glob("*_run*.json"))
     if args.arm:

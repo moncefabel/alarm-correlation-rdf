@@ -33,12 +33,13 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("results")
     ap.add_argument("--domain", default="support", choices=sorted(DOMAINS))
+    ap.add_argument("--questions", default=None, help="Default: the domain's benchmark.")
     ap.add_argument("--graph", default=None)
     args = ap.parse_args()
     d = DOMAINS[args.domain]
     store = GraphStore(ttl_path=str(ROOT / (args.graph or d.graph)))
     labels = label_index(store)
-    questions = {q["id"]: q for q in yaml.safe_load((ROOT / d.questions).read_text())["questions"]}
+    questions = {q["id"]: q for q in yaml.safe_load((ROOT / (args.questions or d.questions)).read_text())["questions"]}
     arms: dict[str, list[tuple[float, float]]] = {}
     changed: dict[str, dict[str, int]] = {}
     for path in sorted(Path(args.results).glob("*_run*.json")):
